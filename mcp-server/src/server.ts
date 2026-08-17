@@ -17,6 +17,7 @@ import { HandlerContext, ToolResult, errorResult } from './handlers/types.js';
 // Import handlers from domain modules
 import { handleGetDaws, handleGetProjectInfo } from './handlers/project.js';
 import { handleListTracks, handleBatchCreateTracks, handleBatchSetTrackProperties, handleBatchDeleteTracks } from './handlers/tracks.js';
+import { handleListDevices, handleSelectDevice, handleGetDeviceParameters, handleSetDeviceParameter } from './handlers/device.js';
 import { handleBatchListClips, handleBatchCreateClips, handleBatchDeleteClips, handleSetClipLength } from './handlers/clips.js';
 import { handleBatchGetNotes, handleBatchSetNotes, handleBatchClearNotes, handleBatchMoveNotes, handleBatchSetNoteProperties, handleTransposeClip, handleTransposeRange } from './handlers/notes.js';
 import { handleGetClipStats } from './handlers/analysis.js';
@@ -36,6 +37,12 @@ function createToolRegistry(): Map<string, ToolHandler> {
     ['batch_create_tracks', handleBatchCreateTracks],
     ['batch_set_track_properties', handleBatchSetTrackProperties],
     ['batch_delete_tracks', handleBatchDeleteTracks],
+
+    // Devices
+    ['list_devices', handleListDevices],
+    ['select_device', handleSelectDevice],
+    ['get_device_parameters', handleGetDeviceParameters],
+    ['set_device_parameter', handleSetDeviceParameter],
 
     // Clips
     ['batch_list_clips', handleBatchListClips],

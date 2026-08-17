@@ -46,6 +46,43 @@ export function createToolDefinitions(config: Config): Tool[] {
       inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
     },
 
+    // Device tools
+    {
+      name: 'list_devices',
+      description: 'List devices in the device chain of the track currently selected in DAW\'s UI (cursor track).',
+      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
+    },
+    {
+      name: 'select_device',
+      description: 'Select a device by its position in the cursor track\'s device chain. Moves the cursor device in Bitwig\'s UI.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          index: { type: 'integer', description: 'Device position in chain, 1-based' }
+        },
+        required: ['index']
+      }
+    },
+    {
+      name: 'get_device_parameters',
+      description: 'Read the 8 generic remote control parameters of the currently selected device (cursor device). Returns name, value (0.0-1.0), and displayedValue (human-readable string) for each.',
+      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
+    },
+    {
+      name: 'set_device_parameter',
+      description: 'Set one of the 8 generic remote control parameters on the currently selected device (cursor device).',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          index: { type: 'integer', description: 'Parameter slot, 0-7' },
+          value: { type: 'number', description: 'Value from 0.0 to 1.0' }
+        },
+        required: ['index', 'value']
+      }
+    },
+
     // MIDI Clip tools
     {
       name: 'transpose_clip',

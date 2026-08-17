@@ -11,6 +11,9 @@ export { handleGetDaws, handleGetProjectInfo } from './project.js';
 // Track handlers
 export { handleListTracks, handleBatchCreateTracks, handleBatchSetTrackProperties, handleBatchDeleteTracks } from './tracks.js';
 
+// Device handlers
+export { handleListDevices, handleSelectDevice, handleGetDeviceParameters, handleSetDeviceParameter } from './device.js';
+
 // Clip handlers
 export { handleBatchListClips, handleBatchCreateClips, handleBatchDeleteClips, handleSetClipLength } from './clips.js';
 
