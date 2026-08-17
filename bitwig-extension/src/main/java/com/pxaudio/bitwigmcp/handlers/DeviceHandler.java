@@ -62,10 +62,15 @@ public class DeviceHandler {
     private JsonElement selectDevice(JsonObject params) {
         int index = getDeviceIndex(params);
         DeviceBank deviceBank = extension.getDeviceBank();
+
+        if (index < 0 || index >= deviceBank.getSizeOfBank()) {
+            throw new IllegalArgumentException("Device does not exist at index: " + (index + 1));
+        }
+
         Device device = deviceBank.getDevice(index);
 
         if (!device.exists().get()) {
-            throw new IllegalArgumentException("Device does not exist at index: " + index);
+            throw new IllegalArgumentException("Device does not exist at index: " + (index + 1));
         }
 
         extension.getCursorDevice().selectDevice(device);
