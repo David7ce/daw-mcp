@@ -112,6 +112,156 @@ export function createToolDefinitions(config: Config): Tool[] {
       }
     },
 
+    // Device loading tools (atomic)
+    {
+      name: 'load_device',
+      description: 'Load a Bitwig device into a track\'s device chain by name. Opens Bitwig\'s browser, picks the best match, and commits - the popup is always closed when this returns. Returns the name actually loaded. Works on the track currently selected in DAW\'s UI by default.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          name: { type: 'string', description: 'Device name to search for, e.g. "Polysynth"' },
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' },
+          position: { type: 'integer', description: 'Device chain position to insert at, 1-based (optional - appends to end of chain if omitted)' }
+        },
+        required: ['name']
+      }
+    },
+    {
+      name: 'load_preset',
+      description: 'Load a preset by name onto the currently selected device (cursor device). Opens Bitwig\'s browser against that device, picks the best match, and commits - the popup is always closed when this returns.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          name: { type: 'string', description: 'Preset name to search for' },
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
+        },
+        required: ['name']
+      }
+    },
+    {
+      name: 'search_browser',
+      description: 'Search what is available in Bitwig\'s browser WITHOUT loading anything. Read-only: always cancels, never inserts into the project. Use to discover device or preset names before calling load_device/load_preset.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          query: { type: 'string', description: 'Filter result names by this substring (optional)' },
+          contentType: { type: 'string', description: 'Browser content type, e.g. "Devices" or "Presets" (optional)' },
+          category: { type: 'string', description: 'Category column filter, e.g. "Synth" (optional)' },
+          creator: { type: 'string', description: 'Creator column filter (optional)' },
+          limit: { type: 'integer', description: 'Max results to return (default: 50)' },
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
+        },
+        required: []
+      }
+    },
+    {
+      name: 'next_preset',
+      description: 'Step the currently selected device (cursor device) to its next preset. No browser popup involved.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
+        },
+        required: []
+      }
+    },
+    {
+      name: 'previous_preset',
+      description: 'Step the currently selected device (cursor device) to its previous preset. No browser popup involved.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
+        },
+        required: []
+      }
+    },
+
+    // Browser session tools (disabled by default - see config)
+    {
+      name: 'browser_open',
+      description: 'Open a Bitwig browser session. Advanced: prefer load_device/load_preset unless you need precise filter control. Cancels any stale session first. IMPORTANT: the popup is modal in Bitwig - always finish with browser_commit or browser_cancel.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          mode: { type: 'string', enum: ['end', 'position', 'replace'], description: 'end = append to device chain (default), position = insert at a chain slot, replace = open against the cursor device (used for presets)' },
+          position: { type: 'integer', description: 'Device chain position, 1-based (required when mode is "position")' },
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
+        },
+        required: []
+      }
+    },
+    {
+      name: 'browser_set_content_type',
+      description: 'Switch the browser\'s content type, e.g. "Devices" or "Presets". Requires an open browser session. Call browser_get_state to see the available content type names.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          name: { type: 'string', description: 'Content type name, e.g. "Devices" or "Presets"' }
+        },
+        required: ['name']
+      }
+    },
+    {
+      name: 'browser_set_filter',
+      description: 'Select a value in one of the browser\'s filter columns. Omit value to clear that filter (selects the wildcard entry). Requires an open browser session.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          column: { type: 'string', enum: ['category', 'creator', 'tag', 'device', 'deviceType', 'fileType', 'location', 'smartCollection'], description: 'Filter column to set' },
+          value: { type: 'string', description: 'Entry name to select (optional - clears the filter if omitted)' }
+        },
+        required: ['column']
+      }
+    },
+    {
+      name: 'browser_get_results',
+      description: 'Read the current browser results. Requires an open browser session.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          limit: { type: 'integer', description: 'Max results to return (default: 50)' }
+        },
+        required: []
+      }
+    },
+    {
+      name: 'browser_select',
+      description: 'Select a browser result by its 1-based position. Requires an open browser session. Does not load it - call browser_commit to apply.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          index: { type: 'integer', description: 'Result position, 1-based' }
+        },
+        required: ['index']
+      }
+    },
+    {
+      name: 'browser_commit',
+      description: 'Commit the browser selection, loading it into the project, and close the popup.',
+      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
+    },
+    {
+      name: 'browser_cancel',
+      description: 'Cancel the browser session without loading anything. Safe to call when no session is open - use this to clear a stuck popup.',
+      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
+    },
+    {
+      name: 'browser_get_state',
+      description: 'Report whether a browser session is open, plus its title, content type, available content types, and result count.',
+      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
+    },
+
     // MIDI Clip tools
     {
       name: 'transpose_clip',

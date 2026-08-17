@@ -17,7 +17,9 @@ import { HandlerContext, ToolResult, errorResult } from './handlers/types.js';
 // Import handlers from domain modules
 import { handleGetDaws, handleGetProjectInfo } from './handlers/project.js';
 import { handleListTracks, handleBatchCreateTracks, handleBatchSetTrackProperties, handleBatchDeleteTracks } from './handlers/tracks.js';
-import { handleListDevices, handleSelectDevice, handleGetDeviceParameters, handleSetDeviceParameter, handleDeleteDevice } from './handlers/device.js';
+import { handleListDevices, handleSelectDevice, handleGetDeviceParameters, handleSetDeviceParameter, handleDeleteDevice, handleNextPreset, handlePreviousPreset } from './handlers/device.js';
+import { handleBrowserOpen, handleBrowserSetContentType, handleBrowserSetFilter, handleBrowserGetResults, handleBrowserSelect, handleBrowserCommit, handleBrowserCancel, handleBrowserGetState } from './handlers/browser.js';
+import { handleLoadDevice, handleLoadPreset, handleSearchBrowser } from './handlers/browser-load.js';
 import { handleBatchListClips, handleBatchCreateClips, handleBatchDeleteClips, handleSetClipLength } from './handlers/clips.js';
 import { handleBatchGetNotes, handleBatchSetNotes, handleBatchClearNotes, handleBatchMoveNotes, handleBatchSetNoteProperties, handleTransposeClip, handleTransposeRange } from './handlers/notes.js';
 import { handleGetClipStats } from './handlers/analysis.js';
@@ -44,6 +46,23 @@ function createToolRegistry(): Map<string, ToolHandler> {
     ['get_device_parameters', handleGetDeviceParameters],
     ['set_device_parameter', handleSetDeviceParameter],
     ['delete_device', handleDeleteDevice],
+    ['next_preset', handleNextPreset],
+    ['previous_preset', handlePreviousPreset],
+
+    // Device loading (atomic)
+    ['load_device', handleLoadDevice],
+    ['load_preset', handleLoadPreset],
+    ['search_browser', handleSearchBrowser],
+
+    // Browser session layer
+    ['browser_open', handleBrowserOpen],
+    ['browser_set_content_type', handleBrowserSetContentType],
+    ['browser_set_filter', handleBrowserSetFilter],
+    ['browser_get_results', handleBrowserGetResults],
+    ['browser_select', handleBrowserSelect],
+    ['browser_commit', handleBrowserCommit],
+    ['browser_cancel', handleBrowserCancel],
+    ['browser_get_state', handleBrowserGetState],
 
     // Clips
     ['batch_list_clips', handleBatchListClips],

@@ -123,6 +123,14 @@ const DEFAULT_DISABLED_TOOLS = [
   'batch_delete_tracks',      // Destructive - producer prefers manual control
   'batch_set_track_properties', // Mixing - not content creation
   'transport_set_position',   // For future arrangement support
+  'browser_open',             // Advanced - prefer load_device/load_preset
+  'browser_set_content_type', // Advanced - session layer
+  'browser_set_filter',       // Advanced - session layer
+  'browser_get_results',      // Advanced - session layer
+  'browser_select',           // Advanced - session layer
+  'browser_commit',           // Advanced - session layer
+  'browser_cancel',           // Advanced - session layer
+  'browser_get_state',        // Advanced - session layer
 ];
 
 /**

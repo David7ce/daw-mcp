@@ -95,3 +95,31 @@ export async function handleDeleteDevice(ctx: HandlerContext): Promise<ToolResul
     return errorResult(error instanceof Error ? error.message : String(error));
   }
 }
+
+/** Handle next_preset */
+export async function handleNextPreset(ctx: HandlerContext): Promise<ToolResult> {
+  const { dawManager, config, daw, args } = ctx;
+
+  try {
+    await selectTrackIfNeeded(dawManager, config, daw, args);
+
+    const result = await dawManager.send('device.nextPreset', {}, daw) as { presetName?: string };
+    return successResult({ success: true, presetName: result.presetName ?? '' });
+  } catch (error) {
+    return errorResult(error instanceof Error ? error.message : String(error));
+  }
+}
+
+/** Handle previous_preset */
+export async function handlePreviousPreset(ctx: HandlerContext): Promise<ToolResult> {
+  const { dawManager, config, daw, args } = ctx;
+
+  try {
+    await selectTrackIfNeeded(dawManager, config, daw, args);
+
+    const result = await dawManager.send('device.previousPreset', {}, daw) as { presetName?: string };
+    return successResult({ success: true, presetName: result.presetName ?? '' });
+  } catch (error) {
+    return errorResult(error instanceof Error ? error.message : String(error));
+  }
+}
