@@ -32,6 +32,8 @@ export async function handleSelectDevice(ctx: HandlerContext): Promise<ToolResul
   const index = args.index as number;
   try {
     await dawManager.send('device.select', { index: toInternal(index) }, daw);
+    // Delay to ensure cursor device follows the selection
+    await new Promise(resolve => setTimeout(resolve, ctx.config.mcp.selectionDelayMs));
     return successResult({ success: true });
   } catch (error) {
     return errorResult(error instanceof Error ? error.message : String(error));
