@@ -161,7 +161,10 @@ public class DeviceHandler {
         double value = params.get("value").getAsDouble();
 
         RemoteControl param = extension.getRemoteControls().getParameter(index);
-        param.value().set(Math.max(0, Math.min(1, value)));
+        // setImmediately, not set: set() is subject to the controller's take over
+        // strategy (pickup/match), which silently discards one-shot programmatic
+        // writes because they never "catch up" the way a physical fader does.
+        param.value().setImmediately(Math.max(0, Math.min(1, value)));
         return successResponse();
     }
 

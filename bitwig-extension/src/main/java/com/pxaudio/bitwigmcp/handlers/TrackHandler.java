@@ -129,7 +129,9 @@ public class TrackHandler {
         double volume = params.get("volume").getAsDouble();
 
         Track track = getValidatedTrack(index);
-        track.volume().set(Math.max(0, Math.min(1, volume)));
+        // setImmediately, not set: set() honours the controller take over strategy
+        // and silently drops one-shot programmatic writes. See DeviceHandler.setParameter.
+        track.volume().setImmediately(Math.max(0, Math.min(1, volume)));
         return successResponse();
     }
 
@@ -138,7 +140,7 @@ public class TrackHandler {
         double pan = params.get("pan").getAsDouble();
 
         Track track = getValidatedTrack(index);
-        track.pan().set(Math.max(0, Math.min(1, pan)));  // 0 = left, 0.5 = center, 1 = right
+        track.pan().setImmediately(Math.max(0, Math.min(1, pan)));  // 0 = left, 0.5 = center, 1 = right
         return successResponse();
     }
 
