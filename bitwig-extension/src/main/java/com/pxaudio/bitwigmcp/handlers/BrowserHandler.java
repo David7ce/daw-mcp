@@ -71,7 +71,7 @@ public class BrowserHandler {
 
         switch (mode) {
             case "end":
-                extension.getCursorTrack().browseToInsertAtEndOfChain();
+                extension.getCursorTrack().endOfDeviceChainInsertionPoint().browse();
                 break;
             case "position": {
                 if (!params.has("position")) {
@@ -89,7 +89,7 @@ public class BrowserHandler {
                 if (!extension.getCursorDevice().exists().get()) {
                     throw new IllegalArgumentException("No device selected. Select a device in Bitwig.");
                 }
-                extension.getCursorDevice().browseToReplaceDevice();
+                extension.getCursorDevice().replaceDeviceInsertionPoint().browse();
                 break;
             default:
                 throw new IllegalArgumentException("Unknown browser mode: " + mode + " (expected end, position, or replace)");
@@ -151,8 +151,8 @@ public class BrowserHandler {
             return successResponse();
         }
 
-        BrowserFilterItemBank bank = column.createItemBank(extension.getBrowserResultsSize());
-        for (int i = 0; i < bank.getSize(); i++) {
+        BrowserFilterItemBank bank = extension.getBrowserFilterBank(columnName);
+        for (int i = 0; i < bank.getSizeOfBank(); i++) {
             BrowserItem item = bank.getItemAt(i);
             if (item.exists().get() && item.name().get().equalsIgnoreCase(value)) {
                 item.isSelected().set(true);
@@ -190,7 +190,7 @@ public class BrowserHandler {
         BrowserResultsItemBank bank = extension.getBrowserResults();
         JsonArray results = new JsonArray();
 
-        for (int i = 0; i < bank.getSize(); i++) {
+        for (int i = 0; i < bank.getSizeOfBank(); i++) {
             BrowserItem item = bank.getItemAt(i);
             if (item.exists().get()) {
                 JsonObject obj = new JsonObject();
@@ -216,7 +216,7 @@ public class BrowserHandler {
         int index = params.get("index").getAsInt();
 
         BrowserResultsItemBank bank = extension.getBrowserResults();
-        if (index < 0 || index >= bank.getSize()) {
+        if (index < 0 || index >= bank.getSizeOfBank()) {
             throw new IllegalArgumentException("Result does not exist at index: " + (index + 1));
         }
 
