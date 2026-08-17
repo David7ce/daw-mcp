@@ -36,6 +36,10 @@ public class DeviceHandler {
                 return setParameter(params);
             case "delete":
                 return deleteDevice(params);
+            case "nextPreset":
+                return stepPreset(true);
+            case "previousPreset":
+                return stepPreset(false);
             default:
                 throw new IllegalArgumentException("Unknown device action: " + action);
         }
@@ -71,6 +75,29 @@ public class DeviceHandler {
         Device device = getValidatedDevice(getDeviceIndex(params));
         device.deleteObject();
         return successResponse();
+    }
+
+    /**
+     * Step to the next or previous preset on the cursor device.
+     * No browser session is involved - this is the Device API directly.
+     *
+     * The returned presetName may lag by one call: Bitwig's observer
+     * cannot fire while this handler is blocking, so it reflects the
+     * preset as of entry. The MCP server re-reads state after a delay.
+     */
+    private JsonElement stepPreset(boolean forward) {
+        requireCursorDevice();
+
+        Device cursorDevice = extension.getCursorDevice();
+        if (forward) {
+            cursorDevice.switchToNextPreset();
+        } else {
+            cursorDevice.switchToPreviousPreset();
+        }
+
+        JsonObject result = successResponse();
+        result.addProperty("presetName", cursorDevice.presetName().get());
+        return result;
     }
 
     /**
