@@ -18,6 +18,9 @@ public class BitwigMCPExtension extends ControllerExtension {
     private SceneBank sceneBank;
     private CursorTrack cursorTrack;
     private Clip cursorClip;
+    private CursorDevice cursorDevice;
+    private DeviceBank deviceBank;
+    private CursorRemoteControlsPage remoteControls;
 
     // Cached cursor position (updated via observers)
     private int selectedTrackIndex = -1;
@@ -73,6 +76,31 @@ public class BitwigMCPExtension extends ControllerExtension {
         cursorClip.setStepSize(config.getStepSize());  // Configurable grid resolution
         cursorClip.getLoopLength().markInterested();
         cursorClip.exists().markInterested();
+
+        // Create cursor device for parameter control - follows user's device selection in Bitwig UI
+        cursorDevice = cursorTrack.createCursorDevice(
+                "MCP_DEVICE", "MCP Device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
+        cursorDevice.exists().markInterested();
+        cursorDevice.name().markInterested();
+        cursorDevice.position().markInterested();
+
+        // Device bank for listing the full chain on the cursor track
+        deviceBank = cursorTrack.createDeviceBank(config.getDevices());
+        for (int d = 0; d < deviceBank.getSizeOfBank(); d++) {
+            Device device = deviceBank.getDevice(d);
+            device.exists().markInterested();
+            device.name().markInterested();
+            device.position().markInterested();
+        }
+
+        // Generic 8-slot remote controls page - works across any plugin type
+        remoteControls = cursorDevice.createCursorRemoteControlsPage(8);
+        for (int p = 0; p < 8; p++) {
+            RemoteControl param = remoteControls.getParameter(p);
+            param.name().markInterested();
+            param.value().markInterested();
+            param.value().displayedValue().markInterested();
+        }
 
         // Mark cursorTrack's clip launcher slots to detect selection and content
         ClipLauncherSlotBank cursorSlotBank = cursorTrack.clipLauncherSlotBank();
@@ -181,6 +209,18 @@ public class BitwigMCPExtension extends ControllerExtension {
 
     public Clip getCursorClip() {
         return cursorClip;
+    }
+
+    public CursorDevice getCursorDevice() {
+        return cursorDevice;
+    }
+
+    public DeviceBank getDeviceBank() {
+        return deviceBank;
+    }
+
+    public CursorRemoteControlsPage getRemoteControls() {
+        return remoteControls;
     }
 
     public int getSelectedTrackIndex() {
