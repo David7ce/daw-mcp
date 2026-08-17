@@ -204,6 +204,7 @@ batch_set_notes({daw: "bitwig", notes: [[0, 60, 100, 0.5]]})
 | Project | `get_project_info` |
 | Tracks | `list_tracks` |
 | Clips | `batch_list_clips`, `batch_create_clips`, `batch_delete_clips`, `set_clip_length` |
+| Devices | `list_devices`, `select_device`, `get_device_parameters`, `set_device_parameter` |
 | MIDI Notes | `batch_get_notes`, `batch_set_notes`, `batch_clear_notes` |
 | Analysis | `get_clip_stats` - stats + Tonal.js chord/scale/key detection |
 | Generative | `batch_create_euclid_pattern` - Euclidean rhythms (multi-track/clip) |
@@ -275,6 +276,39 @@ batch_set_notes({daw: "ableton", notes: [[0, 60, 100, 0.5]]})
 - `batch_list_clips` (trackIndex only)
 - `get_clip_stats`, `batch_create_euclid_pattern`
 - Optional: `transpose_clip`, `batch_move_notes`, `batch_set_note_properties`, `transpose_range`, `batch_operations`
+
+### Device Control - Cursor Device Model
+
+Device operations act on the **cursor track's** device chain — whatever
+track is currently selected in Bitwig's UI. There is no `trackIndex`
+parameter for device tools (unlike clip tools); to control devices on a
+different track, select that track in Bitwig first, or call `select_device`
+after switching tracks via other means.
+
+Within that device chain, `select_device` moves a second cursor (the
+**cursor device**) to a specific device by 1-based position — this cursor
+follows Bitwig's own device-selection UI, so selecting a device in Bitwig
+also updates what `get_device_parameters`/`set_device_parameter` operate on.
+
+**Parameters** are exposed via Bitwig's generic 8-slot "remote controls
+page" (`createCursorRemoteControlsPage(8)`), which works uniformly across
+any plugin type without per-plugin parameter typing. Parameter `index` is
+0-7 and is NOT converted to 1-based (unlike track/device/clip indices) —
+it's treated like a fixed array slot, matching the note `x`/`y` convention.
+
+**Examples:**
+```typescript
+list_devices()                              // Devices on cursor track
+select_device({index: 2})                   // Move cursor device to 2nd device
+get_device_parameters()                     // Read cursor device's 8 params
+set_device_parameter({index: 0, value: 0.75})  // Set first remote control
+```
+
+**Limitations:** Bitwig's 8-slot remote controls page is empty until a
+remote controls page/macro mapping exists on the device — Bitwig auto-builds
+one for many devices, but some plugins need manual mapping in Bitwig's UI
+first. Bypass/enable toggling and per-plugin native parameter lists are out
+of scope (see design spec).
 
 ### Note Reading (Pull-Based)
 
