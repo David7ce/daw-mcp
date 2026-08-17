@@ -13,12 +13,14 @@ public class CommandDispatcher {
     private final TrackHandler trackHandler;
     private final ClipHandler clipHandler;
     private final TransportHandler transportHandler;
+    private final DeviceHandler deviceHandler;
 
     public CommandDispatcher(BitwigMCPExtension extension, ControllerHost host) {
         this.projectHandler = new ProjectHandler(extension, host);
         this.trackHandler = new TrackHandler(extension, host);
         this.clipHandler = new ClipHandler(extension, host);
         this.transportHandler = new TransportHandler(extension, host);
+        this.deviceHandler = new DeviceHandler(extension, host);
     }
 
     /**
@@ -47,6 +49,8 @@ public class CommandDispatcher {
                 return clipHandler.handle(action, params);
             case "transport":
                 return transportHandler.handle(action, params);
+            case "device":
+                return deviceHandler.handle(action, params);
             case "ping":
                 return handlePing();
             default:
