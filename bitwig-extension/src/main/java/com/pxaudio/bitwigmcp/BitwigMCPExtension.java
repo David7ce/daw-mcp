@@ -85,6 +85,7 @@ public class BitwigMCPExtension extends ControllerExtension {
                 "MCP_DEVICE", "MCP Device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
         cursorDevice.exists().markInterested();
         cursorDevice.name().markInterested();
+        cursorDevice.presetName().markInterested();
         cursorDevice.position().markInterested();
 
         // Device bank for listing the full chain on the cursor track
