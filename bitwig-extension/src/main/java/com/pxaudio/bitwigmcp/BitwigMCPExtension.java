@@ -139,7 +139,7 @@ public class BitwigMCPExtension extends ControllerExtension {
             popupBrowser.smartCollectionColumn()
         };
         for (int i = 0; i < filterNames.length; i++) {
-            BrowserFilterItemBank bank = filterColumns[i].createItemBank(config.getBrowserResults());
+            BrowserFilterItemBank bank = filterColumns[i].createItemBank(config.getBrowserFilterSize());
             browserFilterBanks.put(filterNames[i], bank);
             for (int j = 0; j < bank.getSizeOfBank(); j++) {
                 BrowserItem item = bank.getItemAt(j);
@@ -276,10 +276,6 @@ public class BitwigMCPExtension extends ControllerExtension {
 
     public BrowserResultsItemBank getBrowserResults() {
         return browserResults;
-    }
-
-    public int getBrowserResultsSize() {
-        return config.getBrowserResults();
     }
 
     public BrowserFilterItemBank getBrowserFilterBank(String columnName) {

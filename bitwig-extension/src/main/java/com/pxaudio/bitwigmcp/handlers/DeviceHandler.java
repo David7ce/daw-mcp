@@ -40,6 +40,8 @@ public class DeviceHandler {
                 return stepPreset(true);
             case "previousPreset":
                 return stepPreset(false);
+            case "getPresetName":
+                return getPresetName();
             default:
                 throw new IllegalArgumentException("Unknown device action: " + action);
         }
@@ -80,10 +82,6 @@ public class DeviceHandler {
     /**
      * Step to the next or previous preset on the cursor device.
      * No browser session is involved - this is the Device API directly.
-     *
-     * The returned presetName may lag by one call: Bitwig's observer
-     * cannot fire while this handler is blocking, so it reflects the
-     * preset as of entry. The MCP server re-reads state after a delay.
      */
     private JsonElement stepPreset(boolean forward) {
         requireCursorDevice();
@@ -95,8 +93,19 @@ public class DeviceHandler {
             cursorDevice.switchToPreviousPreset();
         }
 
-        JsonObject result = successResponse();
-        result.addProperty("presetName", cursorDevice.presetName().get());
+        return successResponse();
+    }
+
+    /**
+     * Read the cursor device's current preset name. Callers use this after
+     * nextPreset/previousPreset plus a settle delay, since Bitwig's observer
+     * cannot fire while a handler is blocking.
+     */
+    private JsonElement getPresetName() {
+        requireCursorDevice();
+
+        JsonObject result = new JsonObject();
+        result.addProperty("presetName", extension.getCursorDevice().presetName().get());
         return result;
     }
 
