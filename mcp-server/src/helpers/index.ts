@@ -9,4 +9,5 @@ export {
   findEmptySlots,
   selectClipIfNeeded
 } from './clip-selection.js';
+export { selectTrackIfNeeded } from './device-selection.js';
 export { resolveDaw } from './daw-resolution.js';
