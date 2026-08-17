@@ -23,6 +23,7 @@ public class BitwigMCPExtension extends ControllerExtension {
     private CursorRemoteControlsPage remoteControls;
     private PopupBrowser popupBrowser;
     private BrowserResultsItemBank browserResults;
+    private java.util.Map<String, BrowserFilterItemBank> browserFilterBanks;
 
     // Cached cursor position (updated via observers)
     private int selectedTrackIndex = -1;
@@ -121,6 +122,30 @@ public class BitwigMCPExtension extends ControllerExtension {
             item.exists().markInterested();
             item.name().markInterested();
             item.isSelected().markInterested();
+        }
+
+        // Create filter column item banks for browser filtering
+        browserFilterBanks = new java.util.HashMap<>();
+        String[] filterNames = {"category", "creator", "tag", "device", "deviceType", "fileType", "location", "smartCollection"};
+        BrowserFilterColumn[] filterColumns = {
+            popupBrowser.categoryColumn(),
+            popupBrowser.creatorColumn(),
+            popupBrowser.tagColumn(),
+            popupBrowser.deviceColumn(),
+            popupBrowser.deviceTypeColumn(),
+            popupBrowser.fileTypeColumn(),
+            popupBrowser.locationColumn(),
+            popupBrowser.smartCollectionColumn()
+        };
+        for (int i = 0; i < filterNames.length; i++) {
+            BrowserFilterItemBank bank = filterColumns[i].createItemBank(config.getBrowserResults());
+            browserFilterBanks.put(filterNames[i], bank);
+            for (int j = 0; j < bank.getSizeOfBank(); j++) {
+                BrowserItem item = bank.getItemAt(j);
+                item.exists().markInterested();
+                item.name().markInterested();
+                item.isSelected().markInterested();
+            }
         }
 
         // Mark cursorTrack's clip launcher slots to detect selection and content
@@ -254,6 +279,14 @@ public class BitwigMCPExtension extends ControllerExtension {
 
     public int getBrowserResultsSize() {
         return config.getBrowserResults();
+    }
+
+    public BrowserFilterItemBank getBrowserFilterBank(String columnName) {
+        BrowserFilterItemBank bank = browserFilterBanks.get(columnName);
+        if (bank == null) {
+            throw new IllegalArgumentException("Unknown browser column: " + columnName);
+        }
+        return bank;
     }
 
     public int getSelectedTrackIndex() {
