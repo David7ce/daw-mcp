@@ -23,6 +23,7 @@ public class ConfigReader {
     private int sends = 8;
     private int scenes = 128;
     private int devices = 8;
+    private int browserResults = 32;
     private int gridResolution = 16;          // 1/16th notes
     private int cursorClipLengthBeats = 128;  // 32 bars × 4 beats
     private int clipKeys = 128;
@@ -63,6 +64,7 @@ public class ConfigReader {
                 if (bitwig.has("cursorClipLengthBeats")) cursorClipLengthBeats = bitwig.get("cursorClipLengthBeats").getAsInt();
                 if (bitwig.has("scenes")) scenes = bitwig.get("scenes").getAsInt();
                 if (bitwig.has("devices")) devices = bitwig.get("devices").getAsInt();
+                if (bitwig.has("browserResults")) browserResults = bitwig.get("browserResults").getAsInt();
             }
 
             // Calculate derived values
@@ -107,6 +109,7 @@ public class ConfigReader {
     public int getSends() { return sends; }
     public int getScenes() { return scenes; }
     public int getDevices() { return devices; }
+    public int getBrowserResults() { return browserResults; }
     public int getGridResolution() { return gridResolution; }
     public int getCursorClipLengthBeats() { return cursorClipLengthBeats; }
     public double getStepSize() { return stepSize; }
