@@ -21,6 +21,8 @@ public class BitwigMCPExtension extends ControllerExtension {
     private CursorDevice cursorDevice;
     private DeviceBank deviceBank;
     private CursorRemoteControlsPage remoteControls;
+    private PopupBrowser popupBrowser;
+    private BrowserResultsItemBank browserResults;
 
     // Cached cursor position (updated via observers)
     private int selectedTrackIndex = -1;
@@ -100,6 +102,25 @@ public class BitwigMCPExtension extends ControllerExtension {
             param.name().markInterested();
             param.value().markInterested();
             param.value().displayedValue().markInterested();
+        }
+
+        // Popup browser for loading devices and presets.
+        // Results populate asynchronously - the MCP server adds settle delays
+        // between steps, because observers cannot fire while a handler blocks.
+        popupBrowser = host.createPopupBrowser();
+        popupBrowser.exists().markInterested();
+        popupBrowser.title().markInterested();
+        popupBrowser.selectedContentTypeName().markInterested();
+        popupBrowser.selectedContentTypeIndex().markInterested();
+        popupBrowser.contentTypeNames().markInterested();
+
+        browserResults = popupBrowser.resultsColumn().createItemBank(config.getBrowserResults());
+        popupBrowser.resultsColumn().entryCount().markInterested();
+        for (int r = 0; r < browserResults.getSize(); r++) {
+            BrowserResultsItem item = browserResults.getItemAt(r);
+            item.exists().markInterested();
+            item.name().markInterested();
+            item.isSelected().markInterested();
         }
 
         // Mark cursorTrack's clip launcher slots to detect selection and content
@@ -221,6 +242,18 @@ public class BitwigMCPExtension extends ControllerExtension {
 
     public CursorRemoteControlsPage getRemoteControls() {
         return remoteControls;
+    }
+
+    public PopupBrowser getPopupBrowser() {
+        return popupBrowser;
+    }
+
+    public BrowserResultsItemBank getBrowserResults() {
+        return browserResults;
+    }
+
+    public int getBrowserResultsSize() {
+        return config.getBrowserResults();
     }
 
     public int getSelectedTrackIndex() {
