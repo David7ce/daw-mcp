@@ -34,6 +34,8 @@ public class DeviceHandler {
                 return getParameters();
             case "setParameter":
                 return setParameter(params);
+            case "delete":
+                return deleteDevice(params);
             default:
                 throw new IllegalArgumentException("Unknown device action: " + action);
         }
@@ -60,7 +62,22 @@ public class DeviceHandler {
     }
 
     private JsonElement selectDevice(JsonObject params) {
-        int index = getDeviceIndex(params);
+        Device device = getValidatedDevice(getDeviceIndex(params));
+        extension.getCursorDevice().selectDevice(device);
+        return successResponse();
+    }
+
+    private JsonElement deleteDevice(JsonObject params) {
+        Device device = getValidatedDevice(getDeviceIndex(params));
+        device.deleteObject();
+        return successResponse();
+    }
+
+    /**
+     * Get device at index in the cursor track's chain, with bounds and existence validation.
+     * Errors report the user-facing 1-based index.
+     */
+    private Device getValidatedDevice(int index) {
         DeviceBank deviceBank = extension.getDeviceBank();
 
         if (index < 0 || index >= deviceBank.getSizeOfBank()) {
@@ -73,14 +90,11 @@ public class DeviceHandler {
             throw new IllegalArgumentException("Device does not exist at index: " + (index + 1));
         }
 
-        extension.getCursorDevice().selectDevice(device);
-        return successResponse();
+        return device;
     }
 
     private JsonElement getParameters() {
-        if (!extension.getCursorDevice().exists().get()) {
-            throw new IllegalArgumentException("No device selected. Select a device in Bitwig.");
-        }
+        requireCursorDevice();
 
         CursorRemoteControlsPage remoteControls = extension.getRemoteControls();
         JsonArray parameters = new JsonArray();
@@ -102,9 +116,7 @@ public class DeviceHandler {
     }
 
     private JsonElement setParameter(JsonObject params) {
-        if (!extension.getCursorDevice().exists().get()) {
-            throw new IllegalArgumentException("No device selected. Select a device in Bitwig.");
-        }
+        requireCursorDevice();
 
         int index = params.get("index").getAsInt();
         if (index < 0 || index > 7) {
@@ -115,6 +127,15 @@ public class DeviceHandler {
         RemoteControl param = extension.getRemoteControls().getParameter(index);
         param.value().set(Math.max(0, Math.min(1, value)));
         return successResponse();
+    }
+
+    /**
+     * Ensure a device is selected in Bitwig before reading/writing its parameters.
+     */
+    private void requireCursorDevice() {
+        if (!extension.getCursorDevice().exists().get()) {
+            throw new IllegalArgumentException("No device selected. Select a device in Bitwig.");
+        }
     }
 
     private int getDeviceIndex(JsonObject params) {

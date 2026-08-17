@@ -49,16 +49,24 @@ export function createToolDefinitions(config: Config): Tool[] {
     // Device tools
     {
       name: 'list_devices',
-      description: 'List devices in the device chain of the track currently selected in DAW\'s UI (cursor track).',
-      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
-    },
-    {
-      name: 'select_device',
-      description: 'Select a device by its position in the cursor track\'s device chain. Moves the cursor device in Bitwig\'s UI.',
+      description: 'List devices in a track\'s device chain. Works on the track currently selected in DAW\'s UI by default. Provide trackIndex to target a specific track (adds brief selection delay and moves the DAW\'s track selection).',
       inputSchema: {
         type: 'object',
         properties: {
           ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
+        },
+        required: []
+      }
+    },
+    {
+      name: 'select_device',
+      description: 'Select a device by its position in the device chain. Moves the cursor device in Bitwig\'s UI, so subsequent get_device_parameters/set_device_parameter act on it. Provide trackIndex to target a specific track (adds brief selection delay).',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' },
           index: { type: 'integer', description: 'Device position in chain, 1-based' }
         },
         required: ['index']
@@ -66,20 +74,41 @@ export function createToolDefinitions(config: Config): Tool[] {
     },
     {
       name: 'get_device_parameters',
-      description: 'Read the 8 generic remote control parameters of the currently selected device (cursor device). Returns name, value (0.0-1.0), and displayedValue (human-readable string) for each.',
-      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
-    },
-    {
-      name: 'set_device_parameter',
-      description: 'Set one of the 8 generic remote control parameters on the currently selected device (cursor device).',
+      description: 'Read the 8 generic remote control parameters of the currently selected device (cursor device). Returns name, value (0.0-1.0), and displayedValue (human-readable string) for each. Provide trackIndex to select a track first (adds brief selection delay).',
       inputSchema: {
         type: 'object',
         properties: {
           ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
+        },
+        required: []
+      }
+    },
+    {
+      name: 'set_device_parameter',
+      description: 'Set one of the 8 generic remote control parameters on the currently selected device (cursor device). Provide trackIndex to select a track first (adds brief selection delay).',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' },
           index: { type: 'integer', description: 'Parameter slot, 0-7' },
           value: { type: 'number', description: 'Value from 0.0 to 1.0' }
         },
         required: ['index', 'value']
+      }
+    },
+    {
+      name: 'delete_device',
+      description: 'Delete a device from a track\'s device chain by its 1-based position. Works on the track currently selected in DAW\'s UI by default. Provide trackIndex to target a specific track (adds brief selection delay).',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' },
+          index: { type: 'integer', description: 'Device position in chain, 1-based' }
+        },
+        required: ['index']
       }
     },
 
