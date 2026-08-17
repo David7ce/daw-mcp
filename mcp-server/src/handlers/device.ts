@@ -103,7 +103,10 @@ export async function handleNextPreset(ctx: HandlerContext): Promise<ToolResult>
   try {
     await selectTrackIfNeeded(dawManager, config, daw, args);
 
-    const result = await dawManager.send('device.nextPreset', {}, daw) as { presetName?: string };
+    await dawManager.send('device.nextPreset', {}, daw);
+    // Delay to allow Bitwig's preset observer to settle before re-reading the name
+    await new Promise(resolve => setTimeout(resolve, config.mcp.selectionDelayMs));
+    const result = await dawManager.send('device.getPresetName', {}, daw) as { presetName?: string };
     return successResult({ success: true, presetName: result.presetName ?? '' });
   } catch (error) {
     return errorResult(error instanceof Error ? error.message : String(error));
@@ -117,7 +120,10 @@ export async function handlePreviousPreset(ctx: HandlerContext): Promise<ToolRes
   try {
     await selectTrackIfNeeded(dawManager, config, daw, args);
 
-    const result = await dawManager.send('device.previousPreset', {}, daw) as { presetName?: string };
+    await dawManager.send('device.previousPreset', {}, daw);
+    // Delay to allow Bitwig's preset observer to settle before re-reading the name
+    await new Promise(resolve => setTimeout(resolve, config.mcp.selectionDelayMs));
+    const result = await dawManager.send('device.getPresetName', {}, daw) as { presetName?: string };
     return successResult({ success: true, presetName: result.presetName ?? '' });
   } catch (error) {
     return errorResult(error instanceof Error ? error.message : String(error));

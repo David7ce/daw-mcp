@@ -12,15 +12,39 @@ import { settle } from './browser.js';
 import { selectBrowserMatch, BrowserResult, selectTrackIfNeeded, toInternal } from '../helpers/index.js';
 import { DAWClientManager, DAWType } from '../daw-client.js';
 
+/** The results column plus the true entry count behind that window */
+interface ResultsRead {
+  results: BrowserResult[];
+  totalCount: number;
+}
+
 /** Read the current results column (0-based indices, as Bitwig returns them) */
 async function readResults(
   dawManager: DAWClientManager,
   daw: DAWType
-): Promise<BrowserResult[]> {
+): Promise<ResultsRead> {
   const result = await dawManager.send('browser.getResults', {}, daw) as {
     results?: BrowserResult[];
+    totalCount?: number;
   };
-  return result.results ?? [];
+  const results = result.results ?? [];
+  return { results, totalCount: result.totalCount ?? results.length };
+}
+
+/**
+ * Build the "no match" error message. When the results window didn't cover
+ * every entry, say so explicitly - otherwise a caller can't tell truncation
+ * apart from genuine absence.
+ */
+function noMatchMessage(prefix: string, results: BrowserResult[], totalCount: number): string {
+  const available = results.slice(0, 10).map(r => r.name);
+  const truncated = totalCount > results.length;
+
+  return prefix +
+    (truncated
+      ? ` Scanned ${results.length} of ${totalCount} entries (results truncated - narrow your search with search_browser).`
+      : '') +
+    (available.length > 0 ? ` Available: ${available.join(', ')}` : '');
 }
 
 /** Cancel the browser, swallowing errors - this runs on failure paths */
@@ -49,19 +73,25 @@ export async function handleLoadDevice(ctx: HandlerContext): Promise<ToolResult>
     }, daw);
     await settle(config);
 
-    const results = await readResults(dawManager, daw);
+    const { results, totalCount } = await readResults(dawManager, daw);
     const outcome = selectBrowserMatch(results, name);
 
     if (!outcome.match) {
-      const available = results.slice(0, 10).map(r => r.name);
-      return errorResult(
-        `No browser results matching "${name}".` +
-        (available.length > 0 ? ` Available: ${available.join(', ')}` : '')
-      );
+      return errorResult(noMatchMessage(`No browser results matching "${name}".`, results, totalCount));
     }
 
     await dawManager.send('browser.select', { index: outcome.match.index }, daw);
     await settle(config);
+
+    const verify = await readResults(dawManager, daw);
+    const verified = verify.results.find(r => r.index === outcome.match!.index);
+    if (!verified?.isSelected) {
+      return errorResult(
+        `Selection did not apply for "${outcome.match.name}" before commit - ` +
+        `aborting to avoid loading the wrong device. Try increasing mcp.selectionDelayMs in the config and retry.`
+      );
+    }
+
     await dawManager.send('browser.commit', {}, daw);
     await settle(config);
     committed = true;
@@ -100,19 +130,25 @@ export async function handleLoadPreset(ctx: HandlerContext): Promise<ToolResult>
     await dawManager.send('browser.setContentType', { name: 'Presets' }, daw);
     await settle(config);
 
-    const results = await readResults(dawManager, daw);
+    const { results, totalCount } = await readResults(dawManager, daw);
     const outcome = selectBrowserMatch(results, name);
 
     if (!outcome.match) {
-      const available = results.slice(0, 10).map(r => r.name);
-      return errorResult(
-        `No preset matching "${name}".` +
-        (available.length > 0 ? ` Available: ${available.join(', ')}` : '')
-      );
+      return errorResult(noMatchMessage(`No preset matching "${name}".`, results, totalCount));
     }
 
     await dawManager.send('browser.select', { index: outcome.match.index }, daw);
     await settle(config);
+
+    const verify = await readResults(dawManager, daw);
+    const verified = verify.results.find(r => r.index === outcome.match!.index);
+    if (!verified?.isSelected) {
+      return errorResult(
+        `Selection did not apply for "${outcome.match.name}" before commit - ` +
+        `aborting to avoid loading the wrong preset. Try increasing mcp.selectionDelayMs in the config and retry.`
+      );
+    }
+
     await dawManager.send('browser.commit', {}, daw);
     await settle(config);
     committed = true;
@@ -166,7 +202,7 @@ export async function handleSearchBrowser(ctx: HandlerContext): Promise<ToolResu
       await settle(config);
     }
 
-    const results = await readResults(dawManager, daw);
+    const { results, totalCount } = await readResults(dawManager, daw);
 
     const filtered = query === undefined
       ? results
@@ -175,7 +211,8 @@ export async function handleSearchBrowser(ctx: HandlerContext): Promise<ToolResu
     return successResult({
       results: filtered.slice(0, limit).map(r => r.name),
       count: Math.min(filtered.length, limit),
-      totalAvailable: results.length
+      totalAvailable: totalCount,
+      truncated: totalCount > results.length
     });
   } catch (error) {
     return errorResult(error instanceof Error ? error.message : String(error));

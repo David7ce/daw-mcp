@@ -10,6 +10,7 @@
 export interface BrowserResult {
   index: number;
   name: string;
+  isSelected?: boolean;
 }
 
 /** Which rule produced the match */

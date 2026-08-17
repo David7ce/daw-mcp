@@ -95,6 +95,15 @@ public class BrowserHandler {
                 throw new IllegalArgumentException("Unknown browser mode: " + mode + " (expected end, position, or replace)");
         }
 
+        // Bitwig persists filter column selections across browser sessions, so a
+        // category/creator/etc filter left over from a previous search_browser or
+        // load_device call would otherwise silently narrow this one. Reset every
+        // column to its wildcard item so each session starts clean.
+        String[] filterNames = {"category", "creator", "tag", "device", "deviceType", "fileType", "location", "smartCollection"};
+        for (String filterName : filterNames) {
+            getColumn(filterName).getWildcardItem().isSelected().set(true);
+        }
+
         return successResponse();
     }
 
@@ -125,7 +134,8 @@ public class BrowserHandler {
                     return successResponse();
                 }
             }
-            throw new IllegalArgumentException("Unknown content type: " + wanted);
+            throw new IllegalArgumentException("Unknown content type: " + wanted
+                + " (expected one of: " + String.join(", ", names) + ")");
         }
 
         throw new IllegalArgumentException("Missing 'index' or 'name' parameter");
@@ -196,6 +206,7 @@ public class BrowserHandler {
                 JsonObject obj = new JsonObject();
                 obj.addProperty("index", i);
                 obj.addProperty("name", item.name().get());
+                obj.addProperty("isSelected", item.isSelected().get());
                 results.add(obj);
             }
         }
