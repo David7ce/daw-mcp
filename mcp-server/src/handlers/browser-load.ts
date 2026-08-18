@@ -9,7 +9,7 @@
 
 import { HandlerContext, ToolResult, successResult, errorResult } from './types.js';
 import { settle } from './browser.js';
-import { selectBrowserMatch, BrowserResult, selectTrackIfNeeded, toInternal } from '../helpers/index.js';
+import { selectBrowserMatch, BrowserResult, MatchOutcome, selectTrackIfNeeded, toInternal } from '../helpers/index.js';
 import { DAWClientManager, DAWType } from '../daw-client.js';
 
 /** The results column plus the true entry count behind that window */
@@ -127,13 +127,42 @@ export async function handleLoadPreset(ctx: HandlerContext): Promise<ToolResult>
     await dawManager.send('browser.open', { mode: 'replace' }, daw);
     await settle(config);
 
-    await dawManager.send('browser.setContentType', { name: 'Presets' }, daw);
-    await settle(config);
+    // Bitwig exposes no content type literally called "Presets" - the real
+    // names are host- and device-dependent (e.g. "Bitwig Presets",
+    // "Plug-in Presets"), so pick them out of what this session reports
+    // rather than hardcoding a name that may not exist.
+    const state = await dawManager.send('browser.getState', {}, daw) as { contentTypes?: string[] };
+    const available = state.contentTypes ?? [];
+    const presetTypes = available.filter(t => /preset/i.test(t));
 
-    const { results, totalCount } = await readResults(dawManager, daw);
-    const outcome = selectBrowserMatch(results, name);
+    if (presetTypes.length === 0) {
+      return errorResult(
+        `This browser session exposes no preset content type. Available: ${available.join(', ') || '(none)'}`
+      );
+    }
 
-    if (!outcome.match) {
+    // Search each preset content type in turn - a name may live under the
+    // device's own presets or the plug-in preset library.
+    let outcome: MatchOutcome | null = null;
+    let results: BrowserResult[] = [];
+    let totalCount = 0;
+
+    for (const contentType of presetTypes) {
+      await dawManager.send('browser.setContentType', { name: contentType }, daw);
+      await settle(config);
+
+      const read = await readResults(dawManager, daw);
+      results = read.results;
+      totalCount = read.totalCount;
+
+      const candidate = selectBrowserMatch(results, name);
+      if (candidate.match) {
+        outcome = candidate;
+        break;
+      }
+    }
+
+    if (!outcome || !outcome.match) {
       return errorResult(noMatchMessage(`No preset matching "${name}".`, results, totalCount));
     }
 
