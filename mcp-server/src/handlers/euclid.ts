@@ -3,7 +3,7 @@
  */
 
 import { HandlerContext, ToolResult, successResult, errorResult } from './types.js';
-import { toInternal, toUser, quantizeForBitwig } from '../helpers/index.js';
+import { toInternal, toUser, quantizeForBitwig, slotHasContent } from '../helpers/index.js';
 import { patternsToNotes, EuclidPattern } from '../euclidean.js';
 
 interface ClipInput {
@@ -44,18 +44,39 @@ export async function handleBatchCreateEuclidPattern(ctx: HandlerContext): Promi
 
       try {
         if (clipInput.slotIndex !== undefined) {
-          // Scenario 2: Update existing clip
+          // Scenario 2: Target a specific slot
           slotIndex = clipInput.slotIndex;
           const internalSlot = toInternal(slotIndex);
+
+          // The slot may be empty. Writing notes into an empty slot silently
+          // does nothing in the DAW while still looking like success, so create
+          // the clip first rather than reporting notes that were never written.
+          const occupied = await slotHasContent(dawManager, daw, internalTrack, internalSlot);
+          if (!occupied) {
+            await dawManager.send('clip.create', {
+              trackIndex: internalTrack,
+              slotIndex: internalSlot,
+              lengthInBeats: clipInput.lengthBeats ?? 4
+            }, daw);
+            await new Promise(resolve => setTimeout(resolve, config.mcp.selectionDelayMs));
+            created = true;
+          }
 
           // Select the clip
           await dawManager.send('clip.select', { trackIndex: internalTrack, slotIndex: internalSlot }, daw);
           await new Promise(resolve => setTimeout(resolve, config.mcp.selectionDelayMs));
 
-          // Smart clearing: only clear notes at pitches we're about to pattern
-          const pitchesToClear = [...new Set(clipInput.patterns.map(p => p.pitch))];
-          for (const pitch of pitchesToClear) {
-            await dawManager.send('clip.clearNotesAtPitch', { pitch }, daw);
+          if (created && clipInput.name) {
+            await dawManager.send('clip.setName', { name: clipInput.name }, daw);
+          }
+
+          // Smart clearing: only clear notes at pitches we're about to pattern.
+          // Skipped for a clip we just made - there is nothing to clear.
+          if (!created) {
+            const pitchesToClear = [...new Set(clipInput.patterns.map(p => p.pitch))];
+            for (const pitch of pitchesToClear) {
+              await dawManager.send('clip.clearNotesAtPitch', { pitch }, daw);
+            }
           }
         } else {
           // Scenario 1: Create new clip
