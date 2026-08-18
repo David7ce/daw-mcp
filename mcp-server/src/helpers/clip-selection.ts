@@ -86,6 +86,17 @@ export async function selectClipIfNeeded(
 
   // Only select if indices were explicitly provided (not from cursor)
   if (args.trackIndex !== undefined && args.slotIndex !== undefined) {
+    // Selecting an empty slot leaves the cursor clip pointing at nothing.
+    // Writes against it are silently dropped by the DAW while still reporting
+    // success, so refuse up front with something the caller can act on.
+    const occupied = await slotHasContent(dawManager, daw, indices.trackIndex, indices.slotIndex);
+    if (!occupied) {
+      throw new Error(
+        `No clip at track ${args.trackIndex}, slot ${args.slotIndex}. ` +
+        `Create one first with batch_create_clips.`
+      );
+    }
+
     await dawManager.send('clip.select', {
       trackIndex: indices.trackIndex,
       slotIndex: indices.slotIndex
