@@ -12,13 +12,13 @@ export { handleGetDaws, handleGetProjectInfo } from './project.js';
 export { handleListTracks, handleBatchCreateTracks, handleBatchSetTrackProperties, handleBatchDeleteTracks } from './tracks.js';
 
 // Device handlers
-export { handleListDevices, handleSelectDevice, handleGetDeviceParameters, handleSetDeviceParameter, handleDeleteDevice, handleNextPreset, handlePreviousPreset } from './device.js';
+export { handleListDevices, handleSelectDevice, handleGetDeviceParameters, handleSetDeviceParameter, handleDeleteDevice} from './device.js';
 
 // Browser handlers (session layer)
 export { handleBrowserOpen, handleBrowserSetContentType, handleBrowserSetFilter, handleBrowserGetResults, handleBrowserSelect, handleBrowserCommit, handleBrowserCancel, handleBrowserGetState, settle } from './browser.js';
 
 // Browser handlers (atomic layer)
-export { handleLoadDevice, handleLoadPreset, handleSearchBrowser } from './browser-load.js';
+export { handleLoadDevice, handleSearchBrowser } from './browser-load.js';
 
 // Clip handlers
 export { handleBatchListClips, handleBatchCreateClips, handleBatchDeleteClips, handleSetClipLength } from './clips.js';

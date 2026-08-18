@@ -128,54 +128,16 @@ export function createToolDefinitions(config: Config): Tool[] {
       }
     },
     {
-      name: 'load_preset',
-      description: 'Load a preset by name onto the currently selected device (cursor device). Opens Bitwig\'s browser against that device, picks the best match, and commits - the popup is always closed when this returns.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          ...dawParam,
-          name: { type: 'string', description: 'Preset name to search for' },
-          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
-        },
-        required: ['name']
-      }
-    },
-    {
       name: 'search_browser',
-      description: 'Search what is available in Bitwig\'s browser WITHOUT loading anything. Read-only: always cancels, never inserts into the project. Use to discover device or preset names before calling load_device/load_preset.',
+      description: 'Search what is available in Bitwig\'s browser WITHOUT loading anything. Read-only: always cancels, never inserts into the project. Use to discover device or preset names before calling load_device.',
       inputSchema: {
         type: 'object',
         properties: {
           ...dawParam,
           query: { type: 'string', description: 'Filter result names by this substring (optional)' },
-          contentType: { type: 'string', description: 'Browser content type, e.g. "Devices" or "Presets" (optional)' },
           category: { type: 'string', description: 'Category column filter, e.g. "Synth" (optional)' },
           creator: { type: 'string', description: 'Creator column filter (optional)' },
           limit: { type: 'integer', description: 'Max results to return (default: 50)' },
-          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
-        },
-        required: []
-      }
-    },
-    {
-      name: 'next_preset',
-      description: 'Step the currently selected device (cursor device) to its next preset. No browser popup involved.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          ...dawParam,
-          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
-        },
-        required: []
-      }
-    },
-    {
-      name: 'previous_preset',
-      description: 'Step the currently selected device (cursor device) to its previous preset. No browser popup involved.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          ...dawParam,
           trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
         },
         required: []
@@ -185,7 +147,7 @@ export function createToolDefinitions(config: Config): Tool[] {
     // Browser session tools (disabled by default - see config)
     {
       name: 'browser_open',
-      description: 'Open a Bitwig browser session. Advanced: prefer load_device/load_preset unless you need precise filter control. Cancels any stale session first. IMPORTANT: the popup is modal in Bitwig - always finish with browser_commit or browser_cancel.',
+      description: 'Open a Bitwig browser session. Advanced: prefer load_device unless you need precise filter control. Cancels any stale session first. IMPORTANT: the popup is modal in Bitwig - always finish with browser_commit or browser_cancel.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -199,7 +161,7 @@ export function createToolDefinitions(config: Config): Tool[] {
     },
     {
       name: 'browser_set_content_type',
-      description: 'Switch the browser\'s content type, e.g. "Devices" or "Presets". Requires an open browser session. Call browser_get_state to see the available content type names.',
+      description: 'Switch the browser content type. KNOWN LIMITATION: verified non-functional against Bitwig - the call succeeds but the results column does not change. Kept for diagnostics only.',
       inputSchema: {
         type: 'object',
         properties: {
