@@ -74,7 +74,7 @@ export function createToolDefinitions(config: Config): Tool[] {
     },
     {
       name: 'get_device_parameters',
-      description: 'Read the 8 generic remote control parameters of the currently selected device (cursor device). Returns name, value (0.0-1.0), and displayedValue (human-readable string) for each. Provide trackIndex to select a track first (adds brief selection delay).',
+      description: 'Read the 8 remote control parameters of the CURRENTLY SELECTED PAGE on the selected device. Devices have multiple pages - use list_parameter_pages and select_parameter_page to reach parameters not on the current page. Returns name, value (0.0-1.0), and displayedValue (human-readable string) for each. Provide trackIndex to select a track first (adds brief selection delay).',
       inputSchema: {
         type: 'object',
         properties: {
@@ -107,6 +107,32 @@ export function createToolDefinitions(config: Config): Tool[] {
           ...dawParam,
           trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' },
           index: { type: 'integer', description: 'Device position in chain, 1-based' }
+        },
+        required: ['index']
+      }
+    },
+
+    {
+      name: 'list_parameter_pages',
+      description: 'List the remote control pages of the currently selected device. IMPORTANT: get_device_parameters only exposes ONE page of 8 parameters at a time - devices split their controls across several pages (e.g. Polysynth has OSC1, OSC2, MIX, FILTER, AMP, Envelope...). Call this to see what is available, then select_parameter_page to reach the parameters you want.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
+        },
+        required: []
+      }
+    },
+    {
+      name: 'select_parameter_page',
+      description: 'Switch which remote control page get_device_parameters and set_device_parameter act on. Use list_parameter_pages first to see the available pages and their 1-based indices.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' },
+          index: { type: 'integer', description: 'Page number, 1-based' }
         },
         required: ['index']
       }

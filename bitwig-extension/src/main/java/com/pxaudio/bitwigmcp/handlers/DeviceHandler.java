@@ -36,6 +36,10 @@ public class DeviceHandler {
                 return setParameter(params);
             case "delete":
                 return deleteDevice(params);
+            case "listParameterPages":
+                return listParameterPages();
+            case "selectParameterPage":
+                return selectParameterPage(params);
             default:
                 throw new IllegalArgumentException("Unknown device action: " + action);
         }
@@ -129,6 +133,57 @@ public class DeviceHandler {
         // strategy (pickup/match), which silently discards one-shot programmatic
         // writes because they never "catch up" the way a physical fader does.
         param.value().setImmediately(Math.max(0, Math.min(1, value)));
+        return successResponse();
+    }
+
+    /**
+     * List the cursor device's remote control pages.
+     *
+     * The 8 parameters exposed by getParameters belong to ONE page. Devices
+     * typically split their controls across several (oscillator, filter,
+     * envelope, ...), so without this the useful parameters are unreachable.
+     */
+    private JsonElement listParameterPages() {
+        requireCursorDevice();
+
+        CursorRemoteControlsPage remoteControls = extension.getRemoteControls();
+        JsonArray pages = new JsonArray();
+        String[] names = remoteControls.pageNames().get();
+
+        for (int i = 0; i < names.length; i++) {
+            JsonObject obj = new JsonObject();
+            obj.addProperty("index", i);
+            obj.addProperty("name", names[i]);
+            pages.add(obj);
+        }
+
+        JsonObject result = new JsonObject();
+        result.add("pages", pages);
+        result.addProperty("count", pages.size());
+        result.addProperty("selectedIndex", remoteControls.selectedPageIndex().get());
+        return result;
+    }
+
+    /**
+     * Select a remote control page by index, so getParameters/setParameter
+     * act on that page's 8 slots.
+     */
+    private JsonElement selectParameterPage(JsonObject params) {
+        requireCursorDevice();
+
+        CursorRemoteControlsPage remoteControls = extension.getRemoteControls();
+        int pageCount = remoteControls.pageNames().get().length;
+
+        if (!params.has("index")) {
+            throw new IllegalArgumentException("Missing 'index' parameter");
+        }
+        int index = params.get("index").getAsInt();
+        if (index < 0 || index >= pageCount) {
+            throw new IllegalArgumentException(
+                "Parameter page does not exist at index: " + (index + 1) + " (device has " + pageCount + ")");
+        }
+
+        remoteControls.selectedPageIndex().set(index);
         return successResponse();
     }
 

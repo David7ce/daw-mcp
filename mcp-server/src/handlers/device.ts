@@ -95,3 +95,48 @@ export async function handleDeleteDevice(ctx: HandlerContext): Promise<ToolResul
     return errorResult(error instanceof Error ? error.message : String(error));
   }
 }
+
+/** Handle list_parameter_pages */
+export async function handleListParameterPages(ctx: HandlerContext): Promise<ToolResult> {
+  const { dawManager, config, daw, args } = ctx;
+
+  try {
+    await selectTrackIfNeeded(dawManager, config, daw, args);
+
+    const result = await dawManager.send('device.listParameterPages', {}, daw) as {
+      pages?: Array<{ index: number; name: string }>;
+      selectedIndex?: number;
+    };
+
+    const pages = (result.pages ?? []).map(page => ({
+      ...page,
+      index: toUser(page.index)
+    }));
+
+    return successResult({
+      pages,
+      count: pages.length,
+      selectedIndex: toUser(result.selectedIndex ?? 0)
+    });
+  } catch (error) {
+    return errorResult(error instanceof Error ? error.message : String(error));
+  }
+}
+
+/** Handle select_parameter_page */
+export async function handleSelectParameterPage(ctx: HandlerContext): Promise<ToolResult> {
+  const { dawManager, config, daw, args } = ctx;
+
+  const index = args.index as number;
+  try {
+    await selectTrackIfNeeded(dawManager, config, daw, args);
+
+    await dawManager.send('device.selectParameterPage', { index: toInternal(index) }, daw);
+    // The page's 8 slots repopulate asynchronously, so settle before a caller
+    // reads them back.
+    await new Promise(resolve => setTimeout(resolve, config.mcp.selectionDelayMs));
+    return successResult({ success: true });
+  } catch (error) {
+    return errorResult(error instanceof Error ? error.message : String(error));
+  }
+}

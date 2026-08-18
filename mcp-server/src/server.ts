@@ -17,7 +17,7 @@ import { HandlerContext, ToolResult, errorResult } from './handlers/types.js';
 // Import handlers from domain modules
 import { handleGetDaws, handleGetProjectInfo } from './handlers/project.js';
 import { handleListTracks, handleBatchCreateTracks, handleBatchSetTrackProperties, handleBatchDeleteTracks } from './handlers/tracks.js';
-import { handleListDevices, handleSelectDevice, handleGetDeviceParameters, handleSetDeviceParameter, handleDeleteDevice} from './handlers/device.js';
+import { handleListDevices, handleSelectDevice, handleGetDeviceParameters, handleSetDeviceParameter, handleDeleteDevice, handleListParameterPages, handleSelectParameterPage } from './handlers/device.js';
 import { handleBrowserOpen, handleBrowserSetContentType, handleBrowserSetFilter, handleBrowserGetResults, handleBrowserSelect, handleBrowserCommit, handleBrowserCancel, handleBrowserGetState } from './handlers/browser.js';
 import { handleLoadDevice, handleSearchBrowser } from './handlers/browser-load.js';
 import { handleBatchListClips, handleBatchCreateClips, handleBatchDeleteClips, handleSetClipLength } from './handlers/clips.js';
@@ -46,6 +46,8 @@ function createToolRegistry(): Map<string, ToolHandler> {
     ['get_device_parameters', handleGetDeviceParameters],
     ['set_device_parameter', handleSetDeviceParameter],
     ['delete_device', handleDeleteDevice],
+    ['list_parameter_pages', handleListParameterPages],
+    ['select_parameter_page', handleSelectParameterPage],
 
     // Device loading (atomic)
     ['load_device', handleLoadDevice],
