@@ -47,6 +47,10 @@ Key files:
 - `src/index.ts` - Entry point
 - `src/server.ts` - MCP server setup and request routing
 - `src/tools/definitions.ts` - Tool JSON schemas
+- `src/handlers/device.ts` - Device chain and parameter tools (Bitwig)
+- `src/handlers/browser.ts` - Browser session primitives (Bitwig)
+- `src/handlers/browser-load.ts` - Atomic load_device / search_browser (Bitwig)
+- `src/helpers/browser-match.ts` - Deterministic result matching
 - `src/handlers/` - Tool handlers (batch-notes, batch-clips, euclid, etc.)
 - `src/helpers/` - Utilities (indices, clip-selection, command-map)
 - `src/daw-client.ts` - TCP client abstraction
@@ -130,6 +134,8 @@ batch_set_notes({daw: "bitwig", notes: [...]})
 | Project | `get_project_info` |
 | Tracks | `list_tracks` |
 | Clips | `batch_list_clips`, `batch_create_clips`, `batch_delete_clips`, `set_clip_length` |
+| Devices (Bitwig) | `list_devices`, `select_device`, `delete_device`, `get_device_parameters`, `set_device_parameter` |
+| Device Loading (Bitwig) | `load_device`, `search_browser` |
 | MIDI Notes | `batch_get_notes`, `batch_set_notes`, `batch_clear_notes` |
 | Analysis | `get_clip_stats` (includes Tonal.js chord/scale detection, grid detection with confidence) |
 | Generative | `batch_create_euclid_pattern` |
@@ -148,6 +154,14 @@ Enable in config with `"tool_name": true`:
 | `batch_delete_tracks` | Delete tracks |
 | `batch_set_track_properties` | Volume, pan, mute, solo |
 | `transport_set_position` | Set playback position |
+| `browser_open` | Precise browser control (Bitwig) |
+| `browser_set_filter` | Filter browser columns (Bitwig) |
+| `browser_get_results` | Read browser results (Bitwig) |
+| `browser_select` | Select a browser result (Bitwig) |
+| `browser_commit` | Load the selected result (Bitwig) |
+| `browser_cancel` | Clear a stuck browser popup (Bitwig) |
+| `browser_get_state` | Inspect browser session (Bitwig) |
+| `browser_set_content_type` | Diagnostic only - non-functional in Bitwig |
 
 ## Configuration
 

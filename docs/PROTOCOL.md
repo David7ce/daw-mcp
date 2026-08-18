@@ -802,12 +802,220 @@ Health check.
 
 ---
 
+## Device
+
+Device operations act on the **cursor track's** device chain - whatever track
+is selected in the DAW UI. There is no `trackIndex` parameter; the MCP server
+sends `track.select` first when a caller supplies one.
+
+#### `device.list`
+
+List devices in the cursor track's chain.
+
+**Params:** `{}`
+
+**Result:**
+```json
+{
+  "devices": [{"index": 0, "name": "Polysynth"}],
+  "count": 1
+}
+```
+
+#### `device.select`
+
+Move the cursor device to a chain position.
+
+**Params:**
+```json
+{
+  "index": 0
+}
+```
+
+**Result:** `{"success": true}`
+
+#### `device.delete`
+
+Delete the device at a chain position.
+
+**Params:**
+```json
+{
+  "index": 0
+}
+```
+
+**Result:** `{"success": true}`
+
+#### `device.getParameters`
+
+Read the cursor device's 8 generic remote control parameters.
+
+**Params:** `{}`
+
+**Result:**
+```json
+{
+  "parameters": [
+    {"index": 0, "name": "Cutoff", "value": 1.0, "displayedValue": "100 %"}
+  ],
+  "count": 8
+}
+```
+
+#### `device.setParameter`
+
+Set a remote control parameter. `index` is a fixed slot 0-7 and is **not**
+index-converted. Uses `setImmediately` internally - see the note under
+Error Handling about `set(double)` being discarded by take over mode.
+
+**Params:**
+```json
+{
+  "index": 1,
+  "value": 0.65
+}
+```
+
+**Result:** `{"success": true}`
+
+---
+
+## Browser
+
+Thin, non-blocking primitives over Bitwig's popup browser. Results populate
+asynchronously and Bitwig observers cannot fire while a handler blocks, so
+each step returns immediately and the MCP server inserts `selectionDelayMs`
+waits between calls.
+
+#### `browser.open`
+
+Open a browser session, cancelling any stale one first.
+
+**Params:**
+```json
+{
+  "mode": "end",
+  "position": 0
+}
+```
+
+`mode` is `end` (append to the cursor track's chain), `position` (insert at a
+chain slot, requires `position`), or `replace` (open against the cursor
+device).
+
+**Result:** `{"success": true}`
+
+**Note:** what the browser offers is scoped by insertion context. An empty
+instrument track offers instruments; a chain that already has an instrument
+offers audio effects.
+
+#### `browser.getState`
+
+**Params:** `{}`
+
+**Result:**
+```json
+{
+  "isOpen": true,
+  "title": "Select content to insert into device chain",
+  "contentType": "",
+  "resultCount": 2284,
+  "contentTypes": ["Devices", "Plug-ins", "Bitwig Presets", "Plug-in Presets", "Samples", "Multisamples", "Music", "Impulses", "Wavetables"]
+}
+```
+
+`contentTypes` is present only while a session is open.
+
+#### `browser.getResults`
+
+Read the results column. Indices are 0-based.
+
+**Params:** `{}`
+
+**Result:**
+```json
+{
+  "results": [{"index": 0, "name": "Chain", "isSelected": false}],
+  "count": 2284,
+  "totalCount": 2284
+}
+```
+
+`count` is what the bank window holds, `totalCount` the true entry count.
+They differ only when a result set exceeds `bitwig.browserResults`.
+
+#### `browser.setFilter`
+
+Select an entry in a filter column. An empty `value` selects the wildcard,
+clearing that filter.
+
+**Params:**
+```json
+{
+  "column": "category",
+  "value": "Bass"
+}
+```
+
+`column` is one of `category`, `creator`, `tag`, `device`, `deviceType`,
+`fileType`, `location`, `smartCollection`. Values are host-specific;
+an unknown value is rejected with the column name, which is the practical
+way to probe what exists.
+
+**Result:** `{"success": true}`
+
+#### `browser.select`
+
+Select a result by 0-based index. Does not load it.
+
+**Params:**
+```json
+{
+  "index": 8
+}
+```
+
+**Result:** `{"success": true}`
+
+#### `browser.commit`
+
+Commit the selection, loading it, and close the popup.
+
+**Params:** `{}`
+
+**Result:** `{"success": true}`
+
+#### `browser.cancel`
+
+Close without loading. Safe to call when no session is open.
+
+**Params:** `{}`
+
+**Result:** `{"success": true}`
+
+#### `browser.setContentType` (non-functional)
+
+Kept for diagnostics only. Verified against Bitwig: the call succeeds but the
+results column does not change, by name or by index.
+
+**Params:** `{"name": "Bitwig Presets"}` or `{"index": 2}`
+
+**Result:** `{"success": true}`
+
+---
+
 ## Index Convention
 
-All indices are **1-based** in the protocol:
-- Track 1 = first track
-- Slot 1 = first clip slot
-- Internally converted to 0-based for DAW APIs
+Indices on the wire are **0-based**. The MCP server converts the user-facing
+1-based indices before sending, so `list_tracks` track 1 is `{"index": 0}` in
+a `track.*` call.
+
+Two exceptions are deliberately not converted, because they are fixed array
+slots rather than positions:
+- `device.setParameter` `index` (0-7, the remote control slot)
+- `clip.setNote` `x`/`y` (step and pitch)
 
 ---
 
@@ -899,5 +1107,12 @@ The MCP server provides higher-level batch operations that call these protocol m
 | `batch_create_clips` | `clip.findEmptySlots` + `clip.createScene` (if needed) + multiple `clip.create` |
 | `batch_list_clips` | Multiple `clip.list` calls |
 | `get_clip_stats` | `clip.getNotes` + analysis |
+| `list_devices` | `track.select` (if trackIndex given) + `device.list` |
+| `select_device` | `device.select` |
+| `delete_device` | `device.delete` |
+| `get_device_parameters` | `device.getParameters` |
+| `set_device_parameter` | `device.setParameter` |
+| `load_device` | `browser.open` + `browser.getResults` + `browser.select` + `browser.getResults` (verify) + `browser.commit` |
+| `search_browser` | `browser.open` + `browser.setFilter` + `browser.getResults` + `browser.cancel` |
 | `batch_create_euclid_pattern` | Pattern generation + `clip.create` + `clip.setNote` |
 | `transpose_range` | `clip.getNotes` + filtering + `clip.moveNote` |

@@ -63,6 +63,10 @@ public class BrowserHandler {
     private JsonElement openBrowser(JsonObject params) {
         PopupBrowser browser = extension.getPopupBrowser();
 
+        // A stale session must be cancelled before browsing again. Bitwig applies
+        // the cancel synchronously here, so the subsequent browse() call below is
+        // acting on a closed browser - no settle is possible from inside a handler
+        // anyway, since observers cannot fire while this thread runs.
         if (browser.exists().get()) {
             browser.cancel();
         }
@@ -81,6 +85,13 @@ public class BrowserHandler {
                 DeviceBank deviceBank = extension.getDeviceBank();
                 if (position < 0 || position >= deviceBank.getSizeOfBank()) {
                     throw new IllegalArgumentException("Device position out of range: " + (position + 1));
+                }
+                // Bank size is the window, not the chain length. Inserting past the
+                // last real device has unspecified behavior, so require that the
+                // slot (or the slot just after the last device) actually exists.
+                if (position > 0 && !deviceBank.getDevice(position - 1).exists().get()) {
+                    throw new IllegalArgumentException(
+                        "Device position " + (position + 1) + " is past the end of the chain");
                 }
                 deviceBank.browseToInsertDevice(position);
                 break;
