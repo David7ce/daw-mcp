@@ -131,6 +131,20 @@ export class DAWClient {
       await this.connect();
     }
 
+    // Re-check rather than asserting: the close handler nulls the socket, and
+    // it can fire between connecting and writing (e.g. while the DAW extension
+    // is mid-reload). One retry covers that race.
+    if (!this.isConnected()) {
+      await this.connect();
+    }
+    const socket = this.socket;
+    if (!socket) {
+      throw new Error(
+        `Could not establish a connection to ${this.dawType}. ` +
+        `Check the DAW is running with the extension enabled.`
+      );
+    }
+
     const id = String(++this.requestId);
     const request: JsonRpcRequest = {
       jsonrpc: '2.0',
@@ -143,7 +157,7 @@ export class DAWClient {
       this.pendingRequests.set(id, { resolve, reject });
 
       const message = JSON.stringify(request) + '\n';
-      this.socket!.write(message, (err) => {
+      socket.write(message, (err) => {
         if (err) {
           this.pendingRequests.delete(id);
           reject(err);

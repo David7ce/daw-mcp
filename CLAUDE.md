@@ -383,10 +383,19 @@ untested write paths.
 | API | Behavior | Consequence |
 |-----|----------|-------------|
 | `SettableRangedValue.set(double)` | Subject to the controller's take over strategy; one-shot programmatic writes never "catch up" and are discarded | Use `setImmediately(double)` — done for track volume/pan and device parameters |
-| `PopupBrowser.selectedContentTypeIndex().set(int)` | Inert — results column never changes | Preset loading is impossible via the browser; `load_preset` was removed |
+| `PopupBrowser.selectedContentTypeIndex().set(int)` | Inert — the index reads back unchanged (set to 2, still reads 0) and the results column never updates | Presets unreachable via the popup browser |
+| `Device.createDeviceBrowser(int, int)` | Returns a `Browser` whose `exists()` is false, with a zero-size results bank, regardless of the sizes passed | The legacy `Browser`/`BrowsingSession` API — including `getPresetSession()` — is unusable |
 | `Device.switchToNextPreset()` / `switchToPreviousPreset()` | Deprecated **and** inert | `next_preset`/`previous_preset` were removed |
 
 `browser_set_content_type` is kept only as a diagnostic; it does not work.
+
+**Preset loading is not currently achievable** through the Bitwig Controller
+API. All three documented routes were tested against a running instance and
+all three are dead: the popup browser cannot switch to a preset content type,
+the legacy `Browser` API never instantiates, and `Device.switchToNextPreset()`
+is deprecated and inert. `load_preset`, `next_preset` and `previous_preset`
+were removed rather than shipped as tools that silently do nothing. Revisit
+only if a future Bitwig release changes one of the three rows above.
 
 **Examples:**
 ```typescript
