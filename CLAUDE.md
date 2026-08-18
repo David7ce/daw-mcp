@@ -313,6 +313,20 @@ get_device_parameters()                     // Read cursor device's 8 params
 set_device_parameter({index: 0, value: 0.75})  // Set first remote control
 ```
 
+**Parameter pages.** The 8 slots are ONE page of several. Polysynth, for
+example, has 9 pages - OSC1, OSC2, MIX, FILTER, FILTER/EG, AMP, Envelope,
+Common, Vibrato - so reading only the first page reaches 8 of roughly 72
+parameters and misses the filter and envelope entirely. Use
+`list_parameter_pages` to see them and `select_parameter_page` to switch
+which page `get_device_parameters`/`set_device_parameter` act on.
+
+```typescript
+list_parameter_pages()                         // 9 pages on Polysynth
+select_parameter_page({index: 4})              // FILTER (1-based)
+get_device_parameters()                        // Filt Freq, Reso, Keytrack...
+set_device_parameter({index: 0, value: 0.32})  // 132 Hz
+```
+
 **Limitations:** Bitwig's 8-slot remote controls page is empty until a
 remote controls page/macro mapping exists on the device — Bitwig auto-builds
 one for many devices, but some plugins need manual mapping in Bitwig's UI
