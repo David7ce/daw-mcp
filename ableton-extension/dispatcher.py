@@ -71,6 +71,14 @@ class CommandDispatcher:
             # Find handler
             handler = self.handlers.get(category)
             if not handler:
+                # Device and browser tools are Bitwig-only. Say so plainly rather
+                # than reporting an unknown category, which reads like a bug.
+                if category in ('device', 'browser'):
+                    return self._error(
+                        request_id, -32601,
+                        "The '" + category + "' tools are Bitwig-only and are not "
+                        "supported by the Ableton Remote Script."
+                    )
                 return self._error(request_id, -32601, "Unknown category: " + category)
 
             # Execute handler

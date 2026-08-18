@@ -5,7 +5,10 @@
   "bitwig": {
     "port": 8181,
     "cursorClipLengthBeats": 128,
-    "scenes": 128
+    "scenes": 128,
+    "devices": 8,
+    "browserResults": 4096,
+    "browserFilterSize": 32
   },
 
   "ableton": {
@@ -33,6 +36,13 @@
     "batch_set_notes": true,
     "batch_clear_notes": true,
     "batch_operations": true,
+    "list_devices": true,
+    "select_device": true,
+    "delete_device": true,
+    "get_device_parameters": true,
+    "set_device_parameter": true,
+    "load_device": true,
+    "search_browser": true,
 
     "_disabled_by_default": "These tools are DISABLED unless you set them to true:",
     "batch_move_notes": false,
@@ -41,6 +51,14 @@
     "transpose_range": false,
     "batch_create_tracks": false,
     "batch_delete_tracks": false,
-    "batch_set_track_properties": false
+    "batch_set_track_properties": false,
+    "browser_open": false,
+    "browser_set_content_type": false,
+    "browser_set_filter": false,
+    "browser_get_results": false,
+    "browser_select": false,
+    "browser_commit": false,
+    "browser_cancel": false,
+    "browser_get_state": false
   }
 }

@@ -511,6 +511,126 @@ Create/update your config file with all tools enabled:
 
 ---
 
+## Phase 8: Devices and Device Loading (Bitwig only)
+
+These cover behavior that only shows up against a running DAW. Several bugs
+here returned `{"success": true}` while doing nothing, so every write test
+below must be confirmed by reading the value back, not by the response.
+
+### Test 8.1: List Devices
+
+**Human action:** Select a track with at least one device
+
+**Prompt:** "List the devices on the selected track"
+
+**Expected:**
+- Devices listed with 1-based positions
+
+---
+
+### Test 8.2: Read Device Parameters
+
+**Prompt:** "Show me the parameters of the selected device"
+
+**Expected:**
+- 8 slots with name, value (0.0-1.0) and displayedValue
+- Names may be empty if the device has no remote controls page mapped
+
+---
+
+### Test 8.3: Write a Device Parameter (regression: take over mode)
+
+**Prompt:** "Set the second device parameter to 0.65, then read the parameters back"
+
+**Expected:**
+- Value reads back as 0.65 with a matching displayedValue
+- **Regression guard:** `set(double)` is discarded by the controller take
+  over strategy. If the write reports success but the value is unchanged,
+  the code has reverted from `setImmediately` to `set`.
+
+---
+
+### Test 8.4: Write Track Volume (same regression)
+
+**Prompt:** "Set track 1 volume to 0.7, then list tracks"
+
+**Expected:**
+- Track 1 volume reads back as 0.7, not its previous value
+
+---
+
+### Test 8.5: Search Without Loading
+
+**Prompt:** "Search the browser for devices matching 'poly'"
+
+**Expected:**
+- Results returned, with `totalAvailable` and a `truncated` flag
+- **Nothing is inserted** - confirm with a device list afterwards
+- Browser popup is closed afterwards
+
+---
+
+### Test 8.6: Load a Device
+
+**Human action:** Select an empty instrument track
+
+**Prompt:** "Load Polysynth onto the selected track"
+
+**Expected:**
+- Response names what was loaded and the match rule used
+- Device appears in the chain
+- Popup closed
+
+---
+
+### Test 8.7: Insertion Context Scoping
+
+**Human action:** Select an EMPTY instrument track
+
+**Prompt:** "Load a Compressor onto the selected track"
+
+**Expected:**
+- No match, because an empty instrument track offers instruments, not audio
+  effects. This is Bitwig scoping the browse, **not** a bug.
+- Repeating on a track that already has an instrument should find it.
+
+---
+
+### Test 8.8: No Match Reports Truncation Honestly
+
+**Prompt:** "Load a device called zzzznotathing"
+
+**Expected:**
+- Clear no-match error naming some available entries
+- If the result set exceeded the bank, the error says how many were scanned
+  of the total
+- Popup closed, nothing inserted
+
+---
+
+### Test 8.9: Delete a Device
+
+**Prompt:** "Delete the device at position 1 on the selected track"
+
+**Expected:**
+- Device removed, remaining chain intact
+
+---
+
+### Test 8.10: Connection Recovery (regression)
+
+**Human action:** Reload the MCP extension in Bitwig (disable/re-enable it)
+while the MCP client keeps running
+
+**Prompt:** "List the tracks"
+
+**Expected:**
+- Either succeeds immediately, or fails once and succeeds on retry
+- **Regression guard:** it must not hang and then fail every later call. A
+  half-open socket used to poison the client permanently.
+
+---
+
 ## Cleanup
 
 **Human action:**
@@ -531,4 +651,5 @@ Create/update your config file with all tools enabled:
 | 5. Euclidean | 3 | | | |
 | 6. Cross-DAW | 4 | | | |
 | 7. Errors | 3 | | | |
-| **Total** | **36** | | | |
+| 8. Devices & Loading | 10 | | | |
+| **Total** | **46** | | | |
