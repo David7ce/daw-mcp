@@ -163,7 +163,7 @@ export function createToolDefinitions(config: Config): Tool[] {
           query: { type: 'string', description: 'Filter result names by this substring (optional)' },
           category: { type: 'string', description: 'Category column filter, e.g. "Synth" (optional)' },
           creator: { type: 'string', description: 'Creator column filter (optional)' },
-          limit: { type: 'integer', description: 'Max results to return (default: 50)' },
+          limit: { type: 'integer', description: 'Max results to return (default: 50). The response reports `matched` (how many matched your query) and `limited` (whether this cut the list), separately from `truncated` (whether the browser bank could not hold the whole result set).' },
           trackIndex: { type: 'integer', description: 'Track number, 1-based (optional - uses DAW UI selection if omitted)' }
         },
         required: []
