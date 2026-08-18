@@ -66,16 +66,44 @@ export class DAWClient {
 
       this.socket.on('error', (err) => {
         console.error(`[DAWClient:${this.dawType}] Socket error:`, err.message);
+        this.failPending(`Connection to ${this.dawType} failed: ${err.message}`);
         reject(err);
       });
 
       this.socket.on('close', () => {
         console.error(`[DAWClient:${this.dawType}] Connection closed`);
         this.socket = null;
+        // Anything still in flight will never be answered - fail it now rather
+        // than making each caller wait out the full timeout.
+        this.failPending(
+          `Connection to ${this.dawType} closed before a response arrived. ` +
+          `If the extension was reloaded, retry - the next call reconnects.`
+        );
       });
+
+      // Detect a peer that vanished without a clean shutdown (e.g. the DAW
+      // extension being reloaded), which otherwise leaves a half-open socket
+      // that accepts writes and never replies.
+      this.socket.setKeepAlive(true, 5000);
 
       this.socket.connect(this.port, this.host);
     });
+  }
+
+  /** Reject every in-flight request with the same reason. */
+  private failPending(reason: string): void {
+    for (const [id, pending] of this.pendingRequests) {
+      this.pendingRequests.delete(id);
+      pending.reject(new Error(reason));
+    }
+  }
+
+  /** Tear down a socket we no longer trust, so the next send reconnects. */
+  private dropConnection(): void {
+    if (this.socket) {
+      this.socket.destroy();
+      this.socket = null;
+    }
   }
 
   /**
@@ -126,7 +154,14 @@ export class DAWClient {
       setTimeout(() => {
         if (this.pendingRequests.has(id)) {
           this.pendingRequests.delete(id);
-          reject(new Error(`Request timeout (${this.dawType})`));
+          // A timeout means this socket is no longer trustworthy: a half-open
+          // connection accepts writes silently, so every later request would
+          // time out too. Drop it and let the next send reconnect.
+          this.dropConnection();
+          reject(new Error(
+            `Request timeout (${this.dawType}). The connection has been reset - ` +
+            `retry the call.`
+          ));
         }
       }, this.timeout);
     });
