@@ -82,6 +82,10 @@ public class DeviceHandler {
     /**
      * Step to the next or previous preset on the cursor device.
      * No browser session is involved - this is the Device API directly.
+     *
+     * switchToNext/PreviousPreset are deprecated in favour of the browser API,
+     * but deliberately kept: the browser replacement opens a popup, which is
+     * exactly what these two tools exist to avoid. They still function in API 18.
      */
     private JsonElement stepPreset(boolean forward) {
         requireCursorDevice();
