@@ -167,11 +167,20 @@ export async function handleSearchBrowser(ctx: HandlerContext): Promise<ToolResu
       ? results
       : results.filter(r => r.name.toLowerCase().includes(query.trim().toLowerCase()));
 
+    // Two different kinds of "you are not seeing everything", reported apart so
+    // a caller can tell an incomplete read from their own limit:
+    //   truncated - the results bank could not hold the whole set (raise
+    //               bitwig.browserResults)
+    //   limited   - more entries matched than `limit` allowed through
+    const shown = filtered.slice(0, limit).map(r => r.name);
+
     return successResult({
-      results: filtered.slice(0, limit).map(r => r.name),
-      count: Math.min(filtered.length, limit),
+      results: shown,
+      count: shown.length,
+      matched: filtered.length,
       totalAvailable: totalCount,
-      truncated: totalCount > results.length
+      truncated: results.length < totalCount,
+      limited: filtered.length > shown.length
     });
   } catch (error) {
     if (isSessionLost(error)) {
