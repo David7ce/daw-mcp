@@ -99,6 +99,9 @@ public class BitwigMCPExtension extends ControllerExtension {
 
         // Generic 8-slot remote controls page - works across any plugin type
         remoteControls = cursorDevice.createCursorRemoteControlsPage(8);
+        remoteControls.pageNames().markInterested();
+        remoteControls.pageCount().markInterested();
+        remoteControls.selectedPageIndex().markInterested();
         for (int p = 0; p < 8; p++) {
             RemoteControl param = remoteControls.getParameter(p);
             param.name().markInterested();
