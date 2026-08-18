@@ -421,6 +421,26 @@ load_device({name: "EQ+", trackIndex: 2})    // Onto a specific track
 **Config:** `bitwig.browserResults` (default 4096) sizes the results bank;
 `bitwig.browserFilterSize` (default 32) sizes the filter column banks.
 
+### Note positions are always beats
+
+Every note tool takes `x` (and `dx`) as a **beat position**, never a step
+index - `batch_set_notes`, `batch_clear_notes`, `batch_move_notes`,
+`batch_set_note_properties`. A note written at `x: 2` is addressed as `x: 2`
+by all of them, and fractional values like `1.5` are fine.
+
+The Java layer converts beats to Bitwig's step grid internally. Two handlers
+used to read `x` as a raw step index instead, so the same value addressed
+different notes depending on the tool; that is fixed, and the schemas now
+type `x` as `number` rather than `integer`.
+
+### Shortening a clip is non-destructive
+
+`set_clip_length` to a shorter value hides the notes past the new end -
+they stop appearing in `batch_get_notes` and `get_clip_stats` - but they are
+not deleted. Lengthening the clip again brings them back unchanged. Verified
+live: an 8-beat clip with 5 notes reported 3 notes at length 4, then all 5
+again at length 8.
+
 ### Note Reading (Pull-Based)
 
 Notes are read via direct `getStep()` queries (not observer-based):

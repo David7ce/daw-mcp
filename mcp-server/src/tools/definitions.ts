@@ -316,9 +316,9 @@ export function createToolDefinitions(config: Config): Tool[] {
             items: {
               type: 'object',
               properties: {
-                x: { type: 'integer', description: 'Current step position' },
+                x: { type: 'number', description: 'Current beat position (same units as batch_set_notes)' },
                 y: { type: 'integer', description: 'Current MIDI note number' },
-                dx: { type: 'integer', description: 'Steps to move horizontally (positive = right)' },
+                dx: { type: 'number', description: 'Beats to move horizontally (positive = right)' },
                 dy: { type: 'integer', description: 'Semitones to move vertically (positive = up)' }
               },
               required: ['x', 'y']
@@ -343,7 +343,7 @@ export function createToolDefinitions(config: Config): Tool[] {
             items: {
               type: 'object',
               properties: {
-                x: { type: 'integer', description: 'Step position' },
+                x: { type: 'number', description: 'Beat position (same units as batch_set_notes)' },
                 y: { type: 'integer', description: 'MIDI note number' }
               },
               required: ['x', 'y']
@@ -368,7 +368,7 @@ export function createToolDefinitions(config: Config): Tool[] {
             items: {
               type: 'object',
               properties: {
-                x: { type: 'integer', description: 'Step position' },
+                x: { type: 'number', description: 'Beat position (same units as batch_set_notes)' },
                 y: { type: 'integer', description: 'MIDI note number' },
                 velocity: { type: 'number', description: 'Velocity (0.0 to 1.0)' },
                 duration: { type: 'number', description: 'Duration in beats' },

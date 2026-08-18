@@ -392,7 +392,11 @@ public class ClipHandler {
      * Supported properties: velocity, duration, gain, pan, pressure, timbre, transpose, chance
      */
     private JsonElement setNoteProperty(JsonObject params, String property) {
-        int x = params.get("x").getAsInt();
+        // x is a beat position, matching setNote/clearNote. It used to be read as
+        // a raw step index here, so the same x meant different notes depending on
+        // which tool you called.
+        double xBeats = params.get("x").getAsDouble();
+        int x = (int) Math.round(xBeats / extension.getStepSize());
         int y = params.get("y").getAsInt();
         double value = params.get("value").getAsDouble();
         int channel = params.has("channel") ? params.get("channel").getAsInt() : 0;
@@ -435,7 +439,8 @@ public class ClipHandler {
      * Mute or unmute a specific note.
      */
     private JsonElement setNoteMuted(JsonObject params) {
-        int x = params.get("x").getAsInt();
+        double xBeats = params.get("x").getAsDouble();  // Beat position
+        int x = (int) Math.round(xBeats / extension.getStepSize());
         int y = params.get("y").getAsInt();
         boolean muted = params.get("muted").getAsBoolean();
         int channel = params.has("channel") ? params.get("channel").getAsInt() : 0;
@@ -449,9 +454,12 @@ public class ClipHandler {
      * Move a note to a different position.
      */
     private JsonElement moveNote(JsonObject params) {
-        int x = params.get("x").getAsInt();
+        // x and dx are beat values, matching setNote/clearNote.
+        double xBeats = params.get("x").getAsDouble();
+        int x = (int) Math.round(xBeats / extension.getStepSize());
         int y = params.get("y").getAsInt();
-        int dx = params.has("dx") ? params.get("dx").getAsInt() : 0;
+        double dxBeats = params.has("dx") ? params.get("dx").getAsDouble() : 0;
+        int dx = (int) Math.round(dxBeats / extension.getStepSize());
         int dy = params.has("dy") ? params.get("dy").getAsInt() : 0;
         int channel = params.has("channel") ? params.get("channel").getAsInt() : 0;
 
