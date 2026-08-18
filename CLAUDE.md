@@ -205,7 +205,7 @@ batch_set_notes({daw: "bitwig", notes: [[0, 60, 100, 0.5]]})
 | Tracks | `list_tracks` |
 | Clips | `batch_list_clips`, `batch_create_clips`, `batch_delete_clips`, `set_clip_length` |
 | Devices | `list_devices`, `select_device`, `get_device_parameters`, `set_device_parameter` |
-| Device Loading | `load_device`, `load_preset`, `search_browser`, `next_preset`, `previous_preset` |
+| Device Loading | `load_device`, `search_browser` |
 | MIDI Notes | `batch_get_notes`, `batch_set_notes`, `batch_clear_notes` |
 | Analysis | `get_clip_stats` - stats + Tonal.js chord/scale/key detection |
 | Generative | `batch_create_euclid_pattern` - Euclidean rhythms (multi-track/clip) |
@@ -226,7 +226,7 @@ Enable in config with `"tool_name": true`:
 | `batch_set_track_properties` | Volume, pan, mute, solo |
 | `transport_set_position` | Set playback position |
 | `browser_open` | Precise browser filter control |
-| `browser_set_content_type` | Switch between Devices/Presets manually |
+| `browser_set_content_type` | Diagnostic only - verified non-functional in Bitwig |
 | `browser_set_filter` | Precise browser filter control |
 | `browser_get_results` | Precise browser filter control |
 | `browser_select` | Precise browser filter control |
@@ -321,34 +321,31 @@ of scope (see design spec).
 
 ### Device Loading - Browser Session Model
 
-Loading a device or preset goes through Bitwig's **popup browser**. Bitwig
-exposes no way to look up a device's UUID at runtime
-(`createSpecificBitwigDevice` consumes a UUID but nothing yields one), so
-direct insertion would require a hardcoded ID table — the browser is the
-only reliable mechanism.
+Loading a device goes through Bitwig's **popup browser**. Bitwig exposes no
+way to look up a device's UUID at runtime (`createSpecificBitwigDevice`
+consumes a UUID but nothing yields one), so direct insertion would require a
+hardcoded ID table — the browser is the only reliable mechanism.
 
 **Two layers:**
 
-- **Atomic** (enabled by default): `load_device`, `load_preset`,
-  `search_browser`. Each opens a session, does its work, and always closes
-  the popup before returning.
-- **Session** (disabled by default): `browser_open`,
-  `browser_set_content_type`, `browser_set_filter`, `browser_get_results`,
-  `browser_select`, `browser_commit`, `browser_cancel`,
-  `browser_get_state`. Enable these in config only when you need
+- **Atomic** (enabled by default): `load_device`, `search_browser`. Each
+  opens a session, does its work, and always closes the popup before
+  returning.
+- **Session** (disabled by default): `browser_open`, `browser_set_filter`,
+  `browser_get_results`, `browser_select`, `browser_commit`,
+  `browser_cancel`, `browser_get_state`. Enable in config only when you need
   filter-column control the atomic tools do not expose.
 
 **Two invariants:**
 
-1. `load_device`/`load_preset` never leave the popup open — every failure
-   path cancels it. The popup is modal in Bitwig's UI, so a leaked session
-   would block you.
+1. `load_device` never leaves the popup open — every failure path cancels
+   it. The popup is modal in Bitwig's UI, so a leaked session would block
+   you.
 2. `search_browser` never commits — discovery cannot modify the project.
 
-**Match selection** is deterministic rather than a best guess: exact
-case-insensitive name match, else a unique substring match, else the
-shortest substring match (with the alternatives reported). The response
-always names what was actually loaded.
+**Match selection** is deterministic: exact case-insensitive name match,
+else a unique substring match, else the shortest substring match (with the
+alternatives reported). The response always names what was actually loaded.
 
 **Async results:** browser results populate asynchronously, and Bitwig's
 observers cannot fire while a Java handler blocks. So the Java layer only
@@ -356,20 +353,35 @@ exposes non-blocking primitives, and the MCP server inserts
 `mcp.selectionDelayMs` waits between steps. If searches come back
 unexpectedly empty, raising that config value is the first thing to try.
 
-**Preset stepping** (`next_preset`/`previous_preset`) uses the `Device` API
-directly and involves no browser popup at all.
+**Result window:** the browser reports far more entries than are readable at
+once (a stock instrument chain browse showed 2284). `bitwig.browserResults`
+(default 256) sets the window; `search_browser` reports `totalAvailable` and
+a `truncated` flag so truncation is visible rather than silent.
+
+### Known Bitwig API limitations (verified live, not theoretical)
+
+These were found by testing against a running Bitwig instance. Each is a
+call that **returns success while doing nothing** — assume nothing about
+untested write paths.
+
+| API | Behavior | Consequence |
+|-----|----------|-------------|
+| `SettableRangedValue.set(double)` | Subject to the controller's take over strategy; one-shot programmatic writes never "catch up" and are discarded | Use `setImmediately(double)` — done for track volume/pan and device parameters |
+| `PopupBrowser.selectedContentTypeIndex().set(int)` | Inert — results column never changes | Preset loading is impossible via the browser; `load_preset` was removed |
+| `Device.switchToNextPreset()` / `switchToPreviousPreset()` | Deprecated **and** inert | `next_preset`/`previous_preset` were removed |
+
+`browser_set_content_type` is kept only as a diagnostic; it does not work.
 
 **Examples:**
 ```typescript
 search_browser({query: "poly"})              // Discover, loads nothing
 load_device({name: "Polysynth"})             // Append to cursor track's chain
 load_device({name: "EQ+", trackIndex: 2})    // Onto a specific track
-load_preset({name: "Warm Pad"})              // Onto the cursor device
-next_preset()                                // Step presets, no popup
 ```
 
-**Config:** `bitwig.browserResults` (default 32) sets how many browser
-results are readable at once.
+**Config:** `bitwig.browserResults` (default 256) sets how many browser
+results are readable at once; `bitwig.browserFilterSize` (default 32) sizes
+the filter column banks.
 
 ### Note Reading (Pull-Based)
 

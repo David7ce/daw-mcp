@@ -36,12 +36,6 @@ public class DeviceHandler {
                 return setParameter(params);
             case "delete":
                 return deleteDevice(params);
-            case "nextPreset":
-                return stepPreset(true);
-            case "previousPreset":
-                return stepPreset(false);
-            case "getPresetName":
-                return getPresetName();
             default:
                 throw new IllegalArgumentException("Unknown device action: " + action);
         }
@@ -77,40 +71,6 @@ public class DeviceHandler {
         Device device = getValidatedDevice(getDeviceIndex(params));
         device.deleteObject();
         return successResponse();
-    }
-
-    /**
-     * Step to the next or previous preset on the cursor device.
-     * No browser session is involved - this is the Device API directly.
-     *
-     * switchToNext/PreviousPreset are deprecated in favour of the browser API,
-     * but deliberately kept: the browser replacement opens a popup, which is
-     * exactly what these two tools exist to avoid. They still function in API 18.
-     */
-    private JsonElement stepPreset(boolean forward) {
-        requireCursorDevice();
-
-        Device cursorDevice = extension.getCursorDevice();
-        if (forward) {
-            cursorDevice.switchToNextPreset();
-        } else {
-            cursorDevice.switchToPreviousPreset();
-        }
-
-        return successResponse();
-    }
-
-    /**
-     * Read the cursor device's current preset name. Callers use this after
-     * nextPreset/previousPreset plus a settle delay, since Bitwig's observer
-     * cannot fire while a handler is blocking.
-     */
-    private JsonElement getPresetName() {
-        requireCursorDevice();
-
-        JsonObject result = new JsonObject();
-        result.addProperty("presetName", extension.getCursorDevice().presetName().get());
-        return result;
     }
 
     /**

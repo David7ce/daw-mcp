@@ -9,7 +9,7 @@
 
 import { HandlerContext, ToolResult, successResult, errorResult } from './types.js';
 import { settle } from './browser.js';
-import { selectBrowserMatch, BrowserResult, MatchOutcome, selectTrackIfNeeded, toInternal } from '../helpers/index.js';
+import { selectBrowserMatch, BrowserResult, selectTrackIfNeeded, toInternal } from '../helpers/index.js';
 import { DAWClientManager, DAWType } from '../daw-client.js';
 
 /** The results column plus the true entry count behind that window */
@@ -112,91 +112,6 @@ export async function handleLoadDevice(ctx: HandlerContext): Promise<ToolResult>
   }
 }
 
-/** Handle load_preset */
-export async function handleLoadPreset(ctx: HandlerContext): Promise<ToolResult> {
-  const { dawManager, config, daw, args } = ctx;
-
-  const name = args.name as string;
-  let committed = false;
-
-  try {
-    await selectTrackIfNeeded(dawManager, config, daw, args);
-
-    // "replace" opens the browser against the cursor device, which is how
-    // Bitwig exposes that device's presets
-    await dawManager.send('browser.open', { mode: 'replace' }, daw);
-    await settle(config);
-
-    // Bitwig exposes no content type literally called "Presets" - the real
-    // names are host- and device-dependent (e.g. "Bitwig Presets",
-    // "Plug-in Presets"), so pick them out of what this session reports
-    // rather than hardcoding a name that may not exist.
-    const state = await dawManager.send('browser.getState', {}, daw) as { contentTypes?: string[] };
-    const available = state.contentTypes ?? [];
-    const presetTypes = available.filter(t => /preset/i.test(t));
-
-    if (presetTypes.length === 0) {
-      return errorResult(
-        `This browser session exposes no preset content type. Available: ${available.join(', ') || '(none)'}`
-      );
-    }
-
-    // Search each preset content type in turn - a name may live under the
-    // device's own presets or the plug-in preset library.
-    let outcome: MatchOutcome | null = null;
-    let results: BrowserResult[] = [];
-    let totalCount = 0;
-
-    for (const contentType of presetTypes) {
-      await dawManager.send('browser.setContentType', { name: contentType }, daw);
-      await settle(config);
-
-      const read = await readResults(dawManager, daw);
-      results = read.results;
-      totalCount = read.totalCount;
-
-      const candidate = selectBrowserMatch(results, name);
-      if (candidate.match) {
-        outcome = candidate;
-        break;
-      }
-    }
-
-    if (!outcome || !outcome.match) {
-      return errorResult(noMatchMessage(`No preset matching "${name}".`, results, totalCount));
-    }
-
-    await dawManager.send('browser.select', { index: outcome.match.index }, daw);
-    await settle(config);
-
-    const verify = await readResults(dawManager, daw);
-    const verified = verify.results.find(r => r.index === outcome.match!.index);
-    if (!verified?.isSelected) {
-      return errorResult(
-        `Selection did not apply for "${outcome.match.name}" before commit - ` +
-        `aborting to avoid loading the wrong preset. Try increasing mcp.selectionDelayMs in the config and retry.`
-      );
-    }
-
-    await dawManager.send('browser.commit', {}, daw);
-    await settle(config);
-    committed = true;
-
-    return successResult({
-      success: true,
-      preset: outcome.match.name,
-      matchedBy: outcome.rule,
-      ...(outcome.alternatives.length > 0 && { alternatives: outcome.alternatives })
-    });
-  } catch (error) {
-    return errorResult(error instanceof Error ? error.message : String(error));
-  } finally {
-    if (!committed) {
-      await cancelQuietly(dawManager, daw);
-    }
-  }
-}
-
 /**
  * Handle search_browser.
  *
@@ -207,7 +122,6 @@ export async function handleSearchBrowser(ctx: HandlerContext): Promise<ToolResu
   const { dawManager, config, daw, args } = ctx;
 
   const query = args.query as string | undefined;
-  const contentType = args.contentType as string | undefined;
   const category = args.category as string | undefined;
   const creator = args.creator as string | undefined;
   const limit = (args.limit as number | undefined) ?? 50;
@@ -218,10 +132,6 @@ export async function handleSearchBrowser(ctx: HandlerContext): Promise<ToolResu
     await dawManager.send('browser.open', { mode: 'end' }, daw);
     await settle(config);
 
-    if (contentType !== undefined) {
-      await dawManager.send('browser.setContentType', { name: contentType }, daw);
-      await settle(config);
-    }
     if (category !== undefined) {
       await dawManager.send('browser.setFilter', { column: 'category', value: category }, daw);
       await settle(config);
