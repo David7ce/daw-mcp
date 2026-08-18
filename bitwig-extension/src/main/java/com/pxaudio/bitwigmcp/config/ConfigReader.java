@@ -23,7 +23,10 @@ public class ConfigReader {
     private int sends = 8;
     private int scenes = 128;
     private int devices = 8;
-    private int browserResults = 256;
+    // Sized to hold a whole result set rather than a window: a stock instrument
+    // browse reports 2284 entries, and reading 2284 costs the same wall time as
+    // reading 256 (~130ms) because the round-trip dominates, not the item count.
+    private int browserResults = 4096;
     private int browserFilterSize = 32;
     private int gridResolution = 16;          // 1/16th notes
     private int cursorClipLengthBeats = 128;  // 32 bars × 4 beats
