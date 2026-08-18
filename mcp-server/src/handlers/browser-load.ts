@@ -47,6 +47,23 @@ function noMatchMessage(prefix: string, results: BrowserResult[], totalCount: nu
     (available.length > 0 ? ` Available: ${available.join(', ')}` : '');
 }
 
+/**
+ * These tools need the browser session to survive several round-trips, so a
+ * session that disappears mid-flow is a real failure mode worth naming.
+ * The cause is not established - it has been seen when another browser
+ * operation's cleanup raced this one - so the message describes what
+ * happened rather than asserting why.
+ */
+function isSessionLost(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes('No browser session open');
+}
+
+const SESSION_LOST_HINT =
+  'The Bitwig browser session closed before this operation finished, so nothing ' +
+  'was loaded. Retry; if it repeats, check that no other browser operation is ' +
+  'running concurrently.';
+
 /** Cancel the browser, swallowing errors - this runs on failure paths */
 async function cancelQuietly(dawManager: DAWClientManager, daw: DAWType): Promise<void> {
   try {
@@ -103,6 +120,9 @@ export async function handleLoadDevice(ctx: HandlerContext): Promise<ToolResult>
       ...(outcome.alternatives.length > 0 && { alternatives: outcome.alternatives })
     });
   } catch (error) {
+    if (isSessionLost(error)) {
+      return errorResult(SESSION_LOST_HINT);
+    }
     return errorResult(error instanceof Error ? error.message : String(error));
   } finally {
     // Invariant: never leave the popup open
@@ -154,6 +174,9 @@ export async function handleSearchBrowser(ctx: HandlerContext): Promise<ToolResu
       truncated: totalCount > results.length
     });
   } catch (error) {
+    if (isSessionLost(error)) {
+      return errorResult(SESSION_LOST_HINT);
+    }
     return errorResult(error instanceof Error ? error.message : String(error));
   } finally {
     // Invariant: search never commits
