@@ -848,6 +848,35 @@ Delete the device at a chain position.
 
 **Result:** `{"success": true}`
 
+#### `device.listParameterPages`
+
+List the cursor device's remote control pages. The 8 parameters returned by
+`device.getParameters` belong to one page.
+
+**Params:** `{}`
+
+**Result:**
+```json
+{
+  "pages": [{"index": 0, "name": "OSC1"}, {"index": 3, "name": "FILTER"}],
+  "count": 9,
+  "selectedIndex": 0
+}
+```
+
+#### `device.selectParameterPage`
+
+Switch the active page.
+
+**Params:**
+```json
+{
+  "index": 3
+}
+```
+
+**Result:** `{"success": true}`
+
 #### `device.getParameters`
 
 Read the cursor device's 8 generic remote control parameters.
