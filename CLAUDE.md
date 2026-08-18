@@ -353,10 +353,26 @@ exposes non-blocking primitives, and the MCP server inserts
 `mcp.selectionDelayMs` waits between steps. If searches come back
 unexpectedly empty, raising that config value is the first thing to try.
 
-**Result window:** the browser reports far more entries than are readable at
-once (a stock instrument chain browse showed 2284). `bitwig.browserResults`
-(default 256) sets the window; `search_browser` reports `totalAvailable` and
-a `truncated` flag so truncation is visible rather than silent.
+**Result window:** `bitwig.browserResults` (default 4096) sizes the results
+bank. It is deliberately large enough to hold a whole result set rather than
+a window - a stock instrument browse reports 2284 entries, and reading all
+2284 costs the same ~130ms as reading 256, because the round-trip dominates
+rather than the item count. `search_browser` still reports `totalAvailable`
+and a `truncated` flag, so a result set that does exceed the bank is visible
+rather than silent.
+
+**Browse results are scoped by insertion context.** Browsing at the end of an
+empty instrument track offers instruments; browsing after an instrument
+already in the chain offers audio effects. So `load_device({name: "Compressor"})`
+legitimately finds nothing on an empty instrument track - that is Bitwig
+scoping the browse, not a bug. Select a track whose chain already has an
+instrument to reach audio effects.
+
+**Filter columns work** (verified: `category` = "Bass" narrowed 2284 results
+to 15). Values are host-specific and not guessable - `browser_set_filter`
+rejects an unknown value with the column name, which is the practical way to
+probe what exists. Note `deviceType` did not visibly narrow an
+instrument-context browse, so filter behavior can itself depend on context.
 
 ### Known Bitwig API limitations (verified live, not theoretical)
 
@@ -379,9 +395,8 @@ load_device({name: "Polysynth"})             // Append to cursor track's chain
 load_device({name: "EQ+", trackIndex: 2})    // Onto a specific track
 ```
 
-**Config:** `bitwig.browserResults` (default 256) sets how many browser
-results are readable at once; `bitwig.browserFilterSize` (default 32) sizes
-the filter column banks.
+**Config:** `bitwig.browserResults` (default 4096) sizes the results bank;
+`bitwig.browserFilterSize` (default 32) sizes the filter column banks.
 
 ### Note Reading (Pull-Based)
 
