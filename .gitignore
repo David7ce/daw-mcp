@@ -37,3 +37,5 @@ release/
 
 # Archived documentation (local only)
 docs/archived/
+
+.serena/
