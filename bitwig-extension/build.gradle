@@ -28,6 +28,16 @@ dependencies {
 
     // JSON processing - will be bundled in the extension
     implementation 'com.google.code.gson:gson:2.10.1'
+
+    // Tests mock the Bitwig API interfaces, so they need them on the classpath too
+    testImplementation 'com.bitwig:extension-api:18'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 jar {

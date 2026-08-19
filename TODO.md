@@ -30,21 +30,37 @@
   `load_device`/`search_browser`/`browser_*` remain Bitwig-only — Live's
   Browser API is async/hierarchical enough that building it blind wasn't
   worth the risk; still returns a clear "Bitwig-only" error on Ableton.
-- **Smoke tests added** (`mcp-server/src/**/*.test.ts`, run via
-  `npm test` in `mcp-server/` — Node's built-in `node:test`, no new
-  dependency): grid math (`indices.test.ts`), Euclidean rhythm generation
-  (`euclidean.test.ts`), browser match selection
-  (`browser-match.test.ts`), and the ultra-lean note format conversion
-  round-trip including Bitwig quantization (`notes.test.ts`). 12 tests,
-  all passing. Excluded from `tsc` build output via `tsconfig.json`.
+- **Smoke tests added**, one per component (see CLAUDE.md's Testing
+  section for the run commands):
+  - `mcp-server/src/**/*.test.ts` (Node's built-in `node:test`, no new
+    dependency): grid math, Euclidean rhythm generation, browser match
+    selection, and the ultra-lean note format conversion round-trip
+    including Bitwig quantization. 12 tests, excluded from the `tsc`
+    build output.
+  - `bitwig-extension/src/test/java/.../DeviceHandlerTest.java` (JUnit 5 +
+    Mockito, added as `testImplementation` deps in `build.gradle` — first
+    test infra this project has had). Mocks the Bitwig API interfaces
+    (`Device`, `DeviceBank`, `CursorDevice`, `CursorRemoteControlsPage`,
+    etc.) to cover `DeviceHandler`'s bounds-checking and error paths. 13
+    tests. Verified by hand-compiling and running against JUnit console +
+    Mockito jars pulled from Maven Central, since `gradle`/`gradlew` isn't
+    on PATH in this environment — run `gradle test` from
+    `bitwig-extension/` to run it the normal way.
+  - `tests/test_ableton_device_handler.py` (stdlib `unittest`, no Live
+    API needed - fakes `Song`/`Track`/`Device`/`DeviceParameter`). Covers
+    the same bounds-checking as the Java suite plus the value
+    normalization/denormalization math (including the quantized-parameter
+    rounding path) that only exists on the Ableton side. 14 tests, all
+    passing against the real `device.py`.
 
 ## Open
 
-- No Java-side tests for the Bitwig extension (`DeviceHandler`,
-  `BrowserHandler` session state machine) or Python-side tests for the
-  Ableton extension beyond `python -m py_compile` syntax checks. The new
-  smoke tests only cover the TypeScript MCP server. Would need JUnit
-  (Java) and a Live API mock (Python) respectively — bigger lift, left for
-  when it's actually needed.
-- Ableton device support above is unverified against real Ableton. Flag any
-  issues here if it misbehaves.
+- Ableton device support is still unverified against a real Ableton
+  instance - the fakes above check the handler's own logic, not that the
+  real Live API objects behave the way the fakes assume. Flag any issues
+  here if it misbehaves.
+- No tests for `BrowserHandler`'s session state machine (open/setFilter/
+  select/commit/cancel) on the Bitwig side - device tools got covered
+  first since they were the immediate ask; the browser flow is more
+  async/stateful and would take a similar Mockito-based approach if it's
+  worth the effort later.
