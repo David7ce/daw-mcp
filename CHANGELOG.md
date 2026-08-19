@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-08-19, batch_create_tracks/batch_create_clips settle-delay fix, ableton-extension README testing section
+
+- **Fixed a real, live-reproduced bug**: `batch_create_tracks`'s
+  before/after track-list diff (added to resolve Bitwig's fire-and-forget
+  track creation - see the earlier "live smoke test against Bitwig" entry)
+  used a hardcoded 50ms settle delay before re-querying, while every other
+  Bitwig selection/settle wait in this codebase uses the configurable
+  `mcp.selectionDelayMs` (default 400ms). Hit this live while building a
+  demo song: creating an instrument track landed it *before* the existing
+  "FX 1" effect track (Bitwig groups instrument/audio tracks ahead of
+  effect tracks regardless of `position: -1`), and the too-short delay let
+  the diff misread the boundary - it renamed the pre-existing "FX 1" track
+  to the new track's name instead of the actual new track, which sat
+  unnamed one slot over. Recovered by hand via `batch_set_track_properties`.
+  Fixed both `tracks.ts` and the structurally identical scene-creation
+  retry in `clips.ts`'s `findEmptySlotsWithAutoCreate` to use
+  `config.mcp.selectionDelayMs` instead of the hardcoded `50`. All 78
+  mcp-server tests still pass (the fakes already used `selectionDelayMs: 0`,
+  so this was transparent to them). **Not yet deployed to the installed
+  bundle** - see TODO.md for why and what's needed.
+- `ableton-extension/README.md`: added a Testing section listing the four
+  `tests/test_ableton_*.py` files and how to run them - the file had no
+  mention of test coverage at all despite this session adding 59 tests for
+  it.
+
 ## 2026-08-19, ponytail-audit cleanup
 
 Repo-wide over-engineering audit (ponytail-audit skill) found and fixed 4

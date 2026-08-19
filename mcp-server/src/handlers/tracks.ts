@@ -30,7 +30,7 @@ export async function handleListTracks(ctx: HandlerContext): Promise<ToolResult>
 
 /** Handle batch_create_tracks */
 export async function handleBatchCreateTracks(ctx: HandlerContext): Promise<ToolResult> {
-  const { dawManager, daw, args } = ctx;
+  const { dawManager, config, daw, args } = ctx;
 
   const tracks = args.tracks as Array<{ type: string; name?: string; position?: number }>;
   const errors: Array<{ index: number; error: string }> = [];
@@ -57,7 +57,13 @@ export async function handleBatchCreateTracks(ctx: HandlerContext): Promise<Tool
 
       let newIndex = result.index;
       if (newIndex === undefined) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // 50ms was proven too short live: a race where the TrackBank slot's
+        // "exists" flag updates before its "name" observer callback fires
+        // made the diff below misread which position was actually new,
+        // silently renaming a pre-existing track instead. Use the same
+        // settle delay as every other Bitwig selection/settle wait in this
+        // codebase rather than a separate, shorter magic number.
+        await new Promise(resolve => setTimeout(resolve, config.mcp.selectionDelayMs));
         const after = await dawManager.send('track.list', {}, daw) as {
           tracks?: Array<{ index: number; name: string }>
         };
