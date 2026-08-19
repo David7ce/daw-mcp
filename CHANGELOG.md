@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-08-19, clips.ts test coverage
+
+- Added `mcp-server/src/handlers/clips.test.ts` (Node's built-in
+  `node:test`, same queued-response fake pattern as `tracks.test.ts`,
+  needed here because `batch_create_clips` can call
+  `clip.findEmptySlots` twice per clip - once before auto-scene-creation,
+  once after the retry). 14 tests covering the previously-untested core
+  clip-creation logic: Mode A (auto-find empty slot from cursor, with
+  auto-scene-creation when no room exists and a clear error when there's
+  still no room after that), Mode B (explicit target, refusing to
+  overwrite an occupied slot unless `overwrite: true`, deleting before
+  recreating when it is), the cursor-slot advancing correctly across
+  multiple Mode-A clips in one call, `batch_list_clips`'s three ways of
+  resolving which tracks to query (explicit array > single trackIndex >
+  cursor track), `batch_delete_clips`'s per-item error collection, and
+  `set_clip_length` refusing to select an empty slot (writes against an
+  empty cursor clip silently no-op in the DAW, per the existing comment in
+  `clip-selection.ts`). 31 tests total in `mcp-server`, `npm test` and
+  `npm run build` both clean.
+
 ## 2026-08-19, ClipHandler/clip.py test coverage + CI
 
 Follow-up to a full-repo audit that flagged the two biggest, most central
