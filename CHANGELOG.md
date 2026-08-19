@@ -1,5 +1,61 @@
 # Changelog
 
+## 2026-08-19, two full songs composed live via the MCP tools - free-form composition confirmed viable
+
+Built two complete instrumental arrangements this session entirely through
+the `daw` MCP tools against a running Bitwig instance, in two different
+projects and genres, as a live demonstration that an LLM can compose real,
+harmonically-coherent, structured music through this integration without
+a human placing individual notes.
+
+**Song 1 (existing project)**: Pop-rock, C major, I-V-vi-IV (C-G-Am-F).
+Intro, Verse, Pre-Chorus, Chorus, Bridge (contrasting Am-F-C-G, stripped
+back then rebuilt), Outro - bass, keys, drums, plus a new "Lead Melody"
+track with a Polysynth shaped into a lead patch (opened the filter,
+added resonance and keytrack) and a genuine sequenced melodic hook.
+
+**Song 2 ("Instrumental-Rock.bwproject", new/empty project)**: A
+power-trio arrangement (Drums, Bass, Guitar) in E minor, built specifically
+for the user to play live electric guitar on top:
+- `Drums` = "Acoustic Drums Kit 1 Processed", `Bass` = "Electric Bass -
+  Fingered", `Guitar - Guide (MUTE ME)` = "Metal Guitar" - all loaded via
+  `load_device` by exact base-device name, never a preset (see the
+  "Preset loading is not currently achievable" section above for why).
+- Riff (Em-Em-C-D, syncopated unison rhythm across bass/guitar/drums),
+  Groove (Em-C-G-D, sustained power chords, fuller drums), Breakdown
+  (drums+bass only, half-time, **no guitar clip at all** - deliberately
+  left empty so the user has real solo space rather than a muted guide
+  fighting their live playing), Outro (unison hit, snare build, final stop).
+- The guitar track is muted by default per the request ("add the guitar I
+  will mute") - it's a compositional guide (what a guitar part could play),
+  not intended to sound in the final mix.
+
+Verified via `get_clip_stats`' chord detection on both songs, not just
+asserted - e.g. the rock riff read back as `E5 -> E5 -> C5 -> D5`
+("fifth"-type chords, correctly identified as power chords since a dyad
+has no third to determine major/minor) with "E minor" surfacing in
+suggested scales, exactly as intended.
+
+**What this setup genuinely cannot do (documented, not glossed over)**:
+- No audio recording. The user's live guitar performance is a manual step
+  in Bitwig - `daw` MCP has no arrangement view or audio-track access (see
+  CLAUDE.md's Scope section). It builds the MIDI backing around where a
+  live instrument goes, not the recording itself.
+- No realistic electric guitar tone. "Metal Guitar" and similar factory
+  instruments are synthesized/sampled stand-ins, not amp-modeled or
+  performance-realistic - fine for a compositional guide track, not a
+  substitute for the real thing.
+- Preset browsing (as opposed to base device names) is unreliable, per the
+  documented `PopupBrowser.selectedContentTypeIndex()` limitation - every
+  device in both songs was matched by exact base-device name for this
+  reason, then shaped via `set_device_parameter`, never loaded as a
+  preset.
+- Drum kit pitch mapping (36/38/42/46 = kick/snare/closed hat/open hat)
+  was assumed from GM convention and a sibling kit verified earlier in
+  this session (same "Acoustic Drums Kit N ... Processed" factory family),
+  not independently re-verified note-by-note for this specific kit
+  instance - worth a listen-through if something sounds off.
+
 ## 2026-08-19, batch_create_tracks/batch_create_clips settle-delay fix, ableton-extension README testing section
 
 - **Fixed a real, live-reproduced bug**: `batch_create_tracks`'s
