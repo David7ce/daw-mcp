@@ -38,17 +38,21 @@ cd mcp-server && npm install && npm run build
 
 ## Testing
 
-Smoke tests only - none of these talk to a real DAW.
+Smoke tests only - none of these talk to a real DAW. Run automatically on
+every push/PR by `.github/workflows/test.yml` (one job per component).
 
 ```bash
 # MCP server: grid math, Euclidean generation, browser matching, note format conversion
 cd mcp-server && npm test
 
-# Bitwig extension: DeviceHandler validation logic, mocked via Mockito
+# Bitwig extension: DeviceHandler/BrowserHandler/ClipHandler validation and
+# unit-conversion logic, mocked via Mockito
 cd bitwig-extension && gradle test
 
-# Ableton extension: DeviceHandler validation + value normalization, faked Live API
+# Ableton extension: DeviceHandler validation + value normalization, and
+# ClipHandler note read/write logic, both against a faked Live API
 python tests/test_ableton_device_handler.py -v
+python tests/test_ableton_clip_handler.py -v
 ```
 
 ## Release Build
