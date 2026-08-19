@@ -36,6 +36,21 @@ cd bitwig-extension && gradle build && gradle copyExtension
 cd mcp-server && npm install && npm run build
 ```
 
+## Testing
+
+Smoke tests only - none of these talk to a real DAW.
+
+```bash
+# MCP server: grid math, Euclidean generation, browser matching, note format conversion
+cd mcp-server && npm test
+
+# Bitwig extension: DeviceHandler validation logic, mocked via Mockito
+cd bitwig-extension && gradle test
+
+# Ableton extension: DeviceHandler validation + value normalization, faked Live API
+python tests/test_ableton_device_handler.py -v
+```
+
 ## Release Build
 
 Creates a distributable ZIP with all components:
