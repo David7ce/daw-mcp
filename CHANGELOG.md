@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-19, fixed the unreachable ping bug
+
+- Fixed `CommandDispatcher.java`'s `dispatch()`: bare `ping` (no dot) is now
+  special-cased *before* the `category.action` split, the same way
+  Ableton's `dispatcher.py` already handles it. Previously the format
+  check ahead of the switch statement rejected any dot-less method first,
+  so the switch's `case "ping"` was dead code - `ping` always threw
+  "Invalid method format" instead of returning a result.
+- Also fixed the response shape while in there: `handlePing()` returned
+  `{"status": "ok", "timestamp": ...}`, but PROTOCOL.md documents
+  `{"pong": true}` and that's exactly what Ableton's dispatcher already
+  returns. Changed Bitwig's to match - nothing in `mcp-server` referenced
+  the old `status`/`timestamp` fields (grepped first to confirm), so this
+  doesn't break any caller.
+- Updated `CommandDispatcherTest`'s ping test from documenting the bug to
+  asserting the fixed behavior (`ping_returnsPongTrue_matchingProtocolMdAndAbletonsDispatcher`).
+  All 108 Java tests still pass.
+
 ## 2026-08-19, remaining bitwig-extension test coverage - completes the full-repo test audit
 
 - Added `ProjectHandlerTest.java` (4 tests): the tempo-normalization

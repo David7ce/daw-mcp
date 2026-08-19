@@ -38,17 +38,14 @@ class CommandDispatcherTest {
     }
 
     @Test
-    void ping_isActuallyUnreachable_theFormatCheckRunsBeforeTheSwitch() {
-        // BUG, documented not silently fixed: PROTOCOL.md documents a bare
-        // "ping" method (no dot) returning {"pong": true}-shaped status, and
-        // the switch below has a `case "ping"` - but split(".", 2) on a
-        // dot-less string yields a 1-element array, so the `parts.length < 2`
-        // check throws "Invalid method format" before the switch is ever
-        // reached. The `case "ping"` branch is dead code. In practice this
-        // has gone unnoticed because mcp-server's daw-client.ts uses
-        // project.getInfo for its connectivity check instead of ping.
-        Exception e = assertThrows(IllegalArgumentException.class, () -> dispatcher.dispatch("ping", new JsonObject()));
-        assertTrue(e.getMessage().contains("Invalid method format"));
+    void ping_returnsPongTrue_matchingProtocolMdAndAbletonsDispatcher() {
+        // Regression guard: ping is dot-less, so it must be special-cased
+        // before the category.action split - routing it through the split
+        // instead (as a `case "ping"` inside the switch) makes it
+        // unreachable, since the format check ahead of the switch rejects
+        // any dot-less method first.
+        JsonObject result = dispatcher.dispatch("ping", new JsonObject()).getAsJsonObject();
+        assertTrue(result.get("pong").getAsBoolean());
     }
 
     @Test

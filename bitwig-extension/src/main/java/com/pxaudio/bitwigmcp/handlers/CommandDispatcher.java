@@ -34,6 +34,15 @@ public class CommandDispatcher {
      * @throws IllegalArgumentException if method is not found
      */
     public JsonElement dispatch(String method, JsonObject params) {
+        // Special-cased like Ableton's dispatcher.py: "ping" has no dot, so
+        // it must be checked before the category.action split below, not
+        // routed through it (a case "ping" inside that switch is dead code -
+        // the format check ahead of it always rejects a dot-less method
+        // first).
+        if (method.equals("ping")) {
+            return handlePing();
+        }
+
         String[] parts = method.split("\\.", 2);
         if (parts.length < 2) {
             throw new IllegalArgumentException("Invalid method format: " + method);
@@ -55,17 +64,15 @@ public class CommandDispatcher {
                 return deviceHandler.handle(action, params);
             case "browser":
                 return browserHandler.handle(action, params);
-            case "ping":
-                return handlePing();
             default:
                 throw new IllegalArgumentException("Unknown category: " + category);
         }
     }
 
     private JsonElement handlePing() {
+        // {"pong": true}, matching PROTOCOL.md and Ableton's dispatcher.py
         JsonObject result = new JsonObject();
-        result.addProperty("status", "ok");
-        result.addProperty("timestamp", System.currentTimeMillis());
+        result.addProperty("pong", true);
         return result;
     }
 }
