@@ -10,7 +10,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { DAWClientManager, DAWType } from './daw-client.js';
 import { Config, isToolEnabled } from './config.js';
-import { createToolDefinitions } from './tools/index.js';
+import { createToolDefinitions } from './tools/definitions.js';
 import { resolveDaw } from './helpers/daw-resolution.js';
 import { HandlerContext, ToolResult, errorResult } from './handlers/types.js';
 

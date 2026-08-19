@@ -5,6 +5,8 @@ import com.google.gson.*;
 
 import com.pxaudio.bitwigmcp.BitwigMCPExtension;
 
+import static com.pxaudio.bitwigmcp.handlers.JsonResponses.successResponse;
+
 /**
  * Handles browser operations: open a popup browser session, filter it,
  * read results, commit or cancel.
@@ -21,12 +23,6 @@ public class BrowserHandler {
     public BrowserHandler(BitwigMCPExtension extension, ControllerHost host) {
         this.extension = extension;
         this.host = host;
-    }
-
-    private static JsonObject successResponse() {
-        JsonObject result = new JsonObject();
-        result.addProperty("success", true);
-        return result;
     }
 
     public JsonElement handle(String action, JsonObject params) {

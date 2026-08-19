@@ -5,6 +5,8 @@ import com.google.gson.*;
 
 import com.pxaudio.bitwigmcp.BitwigMCPExtension;
 
+import static com.pxaudio.bitwigmcp.handlers.JsonResponses.successResponse;
+
 /**
  * Handles track operations: list, create, delete, modify properties.
  */
@@ -15,12 +17,6 @@ public class TrackHandler {
     public TrackHandler(BitwigMCPExtension extension, ControllerHost host) {
         this.extension = extension;
         this.host = host;
-    }
-
-    private static JsonObject successResponse() {
-        JsonObject result = new JsonObject();
-        result.addProperty("success", true);
-        return result;
     }
 
     public JsonElement handle(String action, JsonObject params) {
