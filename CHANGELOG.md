@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-08-19, remaining mcp-server test coverage
+
+Completed test coverage for every remaining `mcp-server` file with real
+logic, closing out the TypeScript side of the audit. 34 new tests, 78
+total in `mcp-server`, `npm test` and `npm run build` both clean.
+
+- `music-analysis.test.ts` / `handlers/analysis.test.ts`: `analyzeMusic`
+  and `computeClipStats` are pure exported functions, so these are plain
+  input/output tests with no mocking - same style as `euclidean.test.ts`.
+  Expected values (chord names, suggested scales, grid-detection
+  confidence numbers) were grounded by actually running the functions via
+  `node --import tsx` first rather than hand-calculated, since Tonal.js's
+  chord/scale output and the grid-confidence formula aren't obvious from
+  reading the code alone.
+- `handlers/device.test.ts`: covers the index-conversion asymmetry
+  documented in CLAUDE.md - `select_device`/`delete_device`/parameter-page
+  indices convert 1-based<->0-based, but `set_device_parameter`'s index is
+  a fixed 0-7 remote-control slot and is deliberately passed through
+  unconverted.
+- `handlers/browser-load.test.ts`: the two hard invariants from CLAUDE.md
+  - `load_device` never leaves the popup open (cancels on every failure
+  path, commits only after verifying the selection actually applied) and
+  `search_browser` never commits (always cancels, even on success) - plus
+  the truncated-vs-limited distinction in search results and the
+  session-lost error translation.
+- `handlers/browser.test.ts`: the session-layer primitives' own logic
+  (result-limit slicing, index conversion, the empty-string wildcard for
+  clearing a filter).
+- `handlers/project.test.ts`: `get_daws`'s per-DAW grid info (Bitwig gets
+  quantization info, Ableton always null) and its three summary-hint
+  variants (zero/one/multiple connected).
+- `helpers/daw-resolution.test.ts` / `device-selection.test.ts`: the
+  DAW auto-selection priority order (explicit > single connected > config
+  default) and the track-select-before-device-op flow.
+- `config.test.ts`: `isToolEnabled`'s three-tier precedence and
+  `getStepSize`'s formula. Deliberately does NOT exercise `loadConfig()`/
+  `getConfigPath()`, since those read the user's real
+  `%APPDATA%\daw-mcp\config.json` (or platform equivalent) - a test
+  touching that path could corrupt a real user's config.
+
+Left untested, and staying that way: `daw-client.ts`, `server.ts`,
+`index.ts` - these are TCP/MCP-protocol plumbing wired up in `init()`-style
+fashion, the same category of file the project already treats as
+integration-only (see `bitwig-extension/BitwigMCPExtension.java` and
+`ableton-extension/tcp_server.py`, neither of which have unit tests
+either). Testing them meaningfully would mean standing up a real socket or
+MCP client, which is exactly what this project's "Smoke tests only - none
+of these talk to a real DAW" policy is scoped to avoid.
+
 ## 2026-08-19, TrackHandler.java test coverage
 
 - Added `bitwig-extension/src/test/java/.../TrackHandlerTest.java` (JUnit 5
