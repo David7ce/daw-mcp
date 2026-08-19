@@ -152,13 +152,26 @@
   correctly renumbered. Tool is now live-verified, not just
   handler-tested.
 
+## Done (2026-08-19, tracks.ts test coverage)
+
+- Added `mcp-server/src/handlers/tracks.test.ts` (Node's built-in
+  `node:test`, same style as `notes.test.ts`), closing the gap noted below.
+  A queued-response fake (`responses[method]` may be an array, consumed in
+  call order) was needed here specifically because `batch_create_tracks`
+  calls `track.list` twice per track with different before/after
+  snapshots - the existing single-value fake in `notes.test.ts` can't
+  express that. Covers: the Bitwig fire-and-forget diff logic both when
+  the new track lands at the end and when it lands in the middle
+  (position-inserted, shifting later tracks), the Ableton synchronous-index
+  path skipping the redundant re-query entirely, `batch_delete_tracks`
+  sorting into descending internal-index order regardless of input order,
+  and `batch_set_track_properties` only calling setters for properties
+  actually provided. 5 new tests, 17 total, `npm test` and `npm run build`
+  both clean.
+
 ## Open
 
 - Ableton device support is still unverified against a real Ableton
   instance - the fakes above check the handler's own logic, not that the
   real Live API objects behave the way the fakes assume. Flag any issues
   here if it misbehaves.
-- No smoke test covers `batch_create_tracks`'s Bitwig index-resolution path
-  (the before/after diff logic added in that fix) - would need either a
-  live Bitwig instance or a Java-side mock of `track.list` responses at two
-  points in time; worth adding if this code changes again.
