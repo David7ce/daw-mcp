@@ -46,14 +46,37 @@ export async function handleBatchCreateTracks(ctx: HandlerContext): Promise<Tool
           position: tracks[i].position === -1 ? -1 : toInternal(tracks[i].position!)
         })
       };
+
+      // Ableton returns the new index synchronously; Bitwig's create call is
+      // fire-and-forget (async popup-free insert), so snapshot the track list
+      // first and diff after a short settle delay to find where it landed.
+      const before = await dawManager.send('track.list', {}, daw) as {
+        tracks?: Array<{ index: number; name: string }>
+      };
       const result = await dawManager.send('track.create', trackRequest, daw) as { index?: number };
-      if (result.index !== undefined) {
-        // Convert 0-based result to 1-based for user
-        createdIndices.push(toUser(result.index));
+
+      let newIndex = result.index;
+      if (newIndex === undefined) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        const after = await dawManager.send('track.list', {}, daw) as {
+          tracks?: Array<{ index: number; name: string }>
+        };
+        const beforeTracks = before.tracks ?? [];
+        const afterTracks = after.tracks ?? [];
+        newIndex = afterTracks.length - 1; // fallback: assume appended at the end
+        for (let j = 0; j < afterTracks.length; j++) {
+          if (j >= beforeTracks.length || afterTracks[j].name !== beforeTracks[j].name) {
+            newIndex = j;
+            break;
+          }
+        }
       }
-      // Set name if provided (create might not support name directly)
-      if (tracks[i].name && result.index !== undefined) {
-        await dawManager.send('track.setName', { index: result.index, name: tracks[i].name }, daw);
+
+      // Convert 0-based result to 1-based for user
+      createdIndices.push(toUser(newIndex));
+
+      if (tracks[i].name) {
+        await dawManager.send('track.setName', { index: newIndex, name: tracks[i].name }, daw);
       }
       completed++;
     } catch (e) {

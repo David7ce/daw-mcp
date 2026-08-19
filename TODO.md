@@ -53,14 +53,85 @@
     rounding path) that only exists on the Ableton side. 14 tests, all
     passing against the real `device.py`.
 
+## Done (2026-08-19, live smoke test against Bitwig)
+
+- **Fixed `batch_create_tracks` silently dropping `name` and always
+  returning empty `createdIndices`** on Bitwig. Root cause: Bitwig's
+  `Application.createInstrumentTrack()` is fire-and-forget (no synchronous
+  index back), so `TrackHandler.createTrack` in Java never returned
+  `index`, and `mcp-server/src/handlers/tracks.ts` only set the name /
+  recorded the created index when `result.index` was defined - which was
+  never, on Bitwig (Ableton's `create_midi_track`/`create_audio_track` is
+  synchronous and did return an index, so this only affected Bitwig).
+  Fixed in `tracks.ts`: snapshot `track.list` before creating, and if
+  Bitwig doesn't hand back an index, requery after a 50ms settle delay and
+  diff against the snapshot to find where the new track landed - same
+  delay+requery pattern already used for scene auto-creation in
+  `clips.ts`. Verified against the running Bitwig instance: before the fix,
+  `batch_create_tracks({tracks:[{type:"instrument", name:"X"}]})` created
+  a track named "Inst 5" with `createdIndices: []`; the code fix is built
+  but needs the MCP connection restarted to verify live (dist output is
+  updated, running process isn't).
+- Live smoke-tested (not just mocked) against a running Bitwig instance:
+  `batch_create_clips`, `batch_set_notes`/`batch_get_notes` round-trip,
+  `get_clip_stats` (chord/scale/key analysis), `batch_create_euclid_pattern`
+  (4+7+2 hit counts matched), `list_devices`, `search_browser` (query
+  "poly" → 35 matched, correct top-10), `load_device` (exact match on
+  "Polysynth"), `list_parameter_pages` (9 pages, matches CLAUDE.md's
+  documented example), `select_parameter_page`, `get_device_parameters`/
+  `set_device_parameter` (0.32 → "132 Hz", matches documented example),
+  `delete_device`, `batch_delete_clips`. All passed as documented, no other
+  bugs found.
+
+## Done (2026-08-19, BrowserHandler test coverage)
+
+- Added `bitwig-extension/src/test/java/.../BrowserHandlerTest.java` (JUnit
+  5 + Mockito, same style as `DeviceHandlerTest`): covers `open`'s three
+  modes (end/position/replace) and their validation, the stale-session
+  cancel-before-browse behavior, the all-8-columns wildcard reset,
+  `setContentType`/`setFilter` by index/name/value with their not-found
+  error paths, `getResults`, `select`, `commit`, `cancel`'s tolerance of an
+  already-closed browser, and `getState` open vs. closed. 31 tests.
+  Verified by running `gradle test` for real (found a cached Gradle 8.14
+  distribution under `~/.gradle/wrapper/dists` with the extension-api-18
+  dependency already resolved, so no hand-compiling needed this time) - all
+  44 tests (13 Device + 31 Browser) pass.
+
+## Done (2026-08-19, batch_create_tracks fix verified live)
+
+- Confirmed the `batch_create_tracks` fix works against a running Bitwig
+  instance: `createdIndices: [9]` and the track was actually named
+  "PROBE_FINAL" as requested (previously always empty indices + Bitwig's
+  auto-generated "Inst N" name).
+- **Why this took multiple restart attempts**: the daw MCP server this
+  Claude Code setup actually runs is an installed copy at
+  `C:\Users\d7\.local\daw-mcp\mcp-server\dist\mcp-server.js` (bundled via
+  `npm run bundle` in `mcp-server/`), not this repo's own
+  `mcp-server/dist/`. Editing the repo source alone does nothing until
+  that installed bundle is rebuilt and copied over. Restarting Bitwig
+  doesn't touch this Node process either - they're independent. And even
+  reconnecting the MCP client doesn't necessarily kill+respawn the actual
+  `node mcp-server.js` process if the host keeps it alive across
+  reconnects; confirmed via `Get-CimInstance Win32_Process` that the
+  running PID predated the file copy, and killing it directly (`Stop-Process`)
+  was what actually forced a fresh spawn that loaded the fixed code.
+  **If this code changes again**: rebuild with `cd mcp-server && npm run
+  bundle`, copy `dist/mcp-server.js` to the installed path above, then
+  verify the *process* restarted (not just the client reconnected) before
+  retesting - check `Get-CimInstance Win32_Process -Filter "Name='node.exe'"`
+  for the process creation time vs. the file's mtime.
+
 ## Open
 
 - Ableton device support is still unverified against a real Ableton
   instance - the fakes above check the handler's own logic, not that the
   real Live API objects behave the way the fakes assume. Flag any issues
   here if it misbehaves.
-- No tests for `BrowserHandler`'s session state machine (open/setFilter/
-  select/commit/cancel) on the Bitwig side - device tools got covered
-  first since they were the immediate ask; the browser flow is more
-  async/stateful and would take a similar Mockito-based approach if it's
-  worth the effort later.
+- No smoke test covers `batch_create_tracks`'s Bitwig index-resolution path
+  (the before/after diff logic added in that fix) - would need either a
+  live Bitwig instance or a Java-side mock of `track.list` responses at two
+  points in time; worth adding if this code changes again.
+- Five leftover scratch tracks ("Inst 5" through "Inst 8" and
+  "PROBE_FINAL", indices 5-9) are sitting in the live project from this
+  session's testing - delete them manually in Bitwig; `batch_delete_tracks`
+  isn't enabled in this config so the MCP tools couldn't clean them up.
