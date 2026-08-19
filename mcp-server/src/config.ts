@@ -152,13 +152,6 @@ export function isToolEnabled(config: Config, toolName: string): boolean {
 }
 
 /**
- * Get the config file path (for logging/debugging).
- */
-function getConfigFilePath(): string {
-  return getConfigPath();
-}
-
-/**
  * Get the step size in beats for the configured grid resolution.
  * Formula: stepSize = 4 / gridResolution
  * Example: gridResolution=16 -> stepSize=0.25 (1/16th note)

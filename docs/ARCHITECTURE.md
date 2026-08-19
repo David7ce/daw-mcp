@@ -156,7 +156,6 @@ Enable in config with `"tool_name": true`:
 | `batch_create_tracks` | Create multiple tracks |
 | `batch_delete_tracks` | Delete tracks |
 | `batch_set_track_properties` | Volume, pan, mute, solo |
-| `transport_set_position` | Set playback position |
 | `browser_open` | Precise browser control (Bitwig) |
 | `browser_set_filter` | Filter browser columns (Bitwig) |
 | `browser_get_results` | Read browser results (Bitwig) |

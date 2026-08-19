@@ -37,28 +37,39 @@ Then select "AbletonMCP" as a control surface in Live's preferences (Link, Tempo
 | `dispatcher.py` | Routes JSON-RPC commands to handlers |
 | `handlers/base.py` | Base handler class |
 | `handlers/project.py` | Project info (BPM, time signature) |
-| `handlers/transport.py` | Playback state |
-| `handlers/track.py` | Track listing and properties |
-| `handlers/clip.py` | MIDI note read/write operations |
+| `handlers/transport.py` | Playback position |
+| `handlers/track.py` | Track list/create/delete/select/properties |
+| `handlers/clip.py` | MIDI note and clip/scene operations |
+| `handlers/device.py` | Device chain list/select/delete/parameters |
 
 ## Supported Commands
 
-- `project.info` - Get BPM, time signature, playback state
-- `track.list` - List all tracks with properties
-- `clip.list` - List clips on a track
-- `clip.create` - Create new clips
-- `clip.delete` - Delete clips
-- `clip.setLength` - Set clip length
-- `clip.getNotes` - Read MIDI notes from clip
-- `clip.setNotes` - Write MIDI notes to clip
-- `clip.clearNotes` - Clear notes from clip
-- `clip.getSelection` - Get current clip selection
+- `project.getInfo` - Get BPM, time signature, playback state
+- `transport.setPosition` - Set playback position in beats
+- `track.list` / `track.create` / `track.delete` / `track.select` - Track CRUD
+- `track.setName` / `track.setVolume` / `track.setMute` / `track.setSolo` - Track properties
+- `clip.list` / `clip.create` / `clip.delete` / `clip.select` / `clip.getSelection` / `clip.hasContent`
+- `clip.setName` / `clip.setLength` / `clip.stop` / `clip.findEmptySlots`
+- `clip.getSceneCount` / `clip.createScene`
+- `clip.getNotes` / `clip.setNotes` / `clip.setNote` / `clip.moveNote` / `clip.transpose`
+- `clip.clearAllNotes` / `clip.clearNotesAtPitch` / `clip.clearNote`
+- `clip.setNoteVelocity` / `clip.setNoteDuration` / `clip.setNoteMuted`
+- `device.list` / `device.select` / `device.delete`
+- `device.getParameters` / `device.setParameter` - values normalized 0.0-1.0
+- `device.listParameterPages` / `device.selectParameterPage` - always error
+  (no page concept in Live's API; `device.getParameters` already returns
+  every parameter)
+
+`browser.*` methods return a clear "Bitwig-only" error - Live has no
+equivalent of Bitwig's popup browser.
 
 ## Limitations vs Bitwig
 
 Some Bitwig features are not available in Ableton's Live API:
 - Per-note MPE properties (chance, timbre, transpose, gain, pan)
 - Cursor clip tracking is polling-based (~100ms vs instant in Bitwig)
+- Device parameter pages (Live devices expose one flat parameter list)
+- Device loading via browser (`load_device`/`search_browser` are Bitwig-only)
 
 ## References
 

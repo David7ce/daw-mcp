@@ -15,9 +15,9 @@ Create/update your config file with all tools enabled:
 ```json
 {
   "defaultDaw": "bitwig",
+  "gridResolution": 16,
   "bitwig": {
     "port": 8181,
-    "gridResolution": 16,
     "cursorClipLengthBeats": 128,
     "scenes": 128
   },
