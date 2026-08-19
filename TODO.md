@@ -121,6 +121,37 @@
   retesting - check `Get-CimInstance Win32_Process -Filter "Name='node.exe'"`
   for the process creation time vs. the file's mtime.
 
+## Done (2026-08-19, enabled full track CRUD)
+
+- `batch_delete_tracks` (D) and `batch_set_track_properties` (U) were
+  already fully implemented (handler, tool definition, dispatch) - they
+  were just in `DEFAULT_DISABLED_TOOLS` in `mcp-server/src/config.ts`
+  behind the "producer prefers manual control" rationale. User asked for
+  complete track CRUD, so enabled both in the local
+  `%APPDATA%\daw-mcp\config.json` (`tools.batch_delete_tracks: true`,
+  `tools.batch_set_track_properties: true`) rather than changing the
+  project's shipped defaults, which stay conservative for other installs.
+  Killed and let the daw MCP server process respawn to pick up the config
+  change (tool availability is read at server startup).
+- **Not yet live-verified**: this chat session's tool catalog was fetched
+  once at session start, before the config change, so it doesn't include
+  the two newly-enabled tools even though the server now advertises them.
+  Needs a fresh conversation to pick up the updated tool list, then
+  `batch_delete_tracks` can be tested for real by cleaning up the five
+  leftover scratch tracks below.
+
+## Done (2026-08-19, batch_delete_tracks verified live)
+
+- New session's tool catalog included `batch_delete_tracks` as expected.
+  Called `batch_delete_tracks({trackIndices:[5,6,7,8,9]})` (after explicit
+  user confirmation, since it's a destructive live-project action) to
+  remove the five leftover scratch tracks ("Inst 5" through "Inst 8",
+  "PROBE_FINAL"). `list_tracks` before/after confirmed all five were
+  deleted and the project is back to its original 6 tracks (Acoustic Bass,
+  Audio 2, Rusty Rhodes, Acoustic Drums Kit, FX 1, Master), with indices
+  correctly renumbered. Tool is now live-verified, not just
+  handler-tested.
+
 ## Open
 
 - Ableton device support is still unverified against a real Ableton
@@ -131,7 +162,3 @@
   (the before/after diff logic added in that fix) - would need either a
   live Bitwig instance or a Java-side mock of `track.list` responses at two
   points in time; worth adding if this code changes again.
-- Five leftover scratch tracks ("Inst 5" through "Inst 8" and
-  "PROBE_FINAL", indices 5-9) are sitting in the live project from this
-  session's testing - delete them manually in Bitwig; `batch_delete_tracks`
-  isn't enabled in this config so the MCP tools couldn't clean them up.
