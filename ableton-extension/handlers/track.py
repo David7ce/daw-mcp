@@ -17,6 +17,7 @@ class TrackHandler(BaseHandler):
         - list: List all tracks with properties
         - create: Create a new track
         - delete: Delete a track
+        - select: Select a track (drives the cursor for device operations)
         - setName: Set track name
         - setVolume: Set track volume
         - setMute: Set track mute state
@@ -87,6 +88,24 @@ class TrackHandler(BaseHandler):
 
         except Exception as e:
             logger.error("Error deleting track: %s", e)
+            raise
+
+        return self.success()
+
+    def handle_select(self, params):
+        """Select a track by index (drives the cursor for device operations)."""
+        index = params.get('index')
+
+        if index is None:
+            raise ValueError("index is required")
+
+        try:
+            track = self.song.tracks[index]
+            self.song.view.selected_track = track
+            logger.info("Selected track %d", index)
+
+        except Exception as e:
+            logger.error("Error selecting track: %s", e)
             raise
 
         return self.success()

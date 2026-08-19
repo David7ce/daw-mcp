@@ -122,8 +122,7 @@ const DEFAULT_DISABLED_TOOLS = [
   'batch_create_tracks',      // Producer creates tracks manually
   'batch_delete_tracks',      // Destructive - producer prefers manual control
   'batch_set_track_properties', // Mixing - not content creation
-  'transport_set_position',   // For future arrangement support
-  'browser_open',             // Advanced - prefer load_device/load_preset
+  'browser_open',             // Advanced - prefer load_device
   'browser_set_content_type', // Advanced - session layer
   'browser_set_filter',       // Advanced - session layer
   'browser_get_results',      // Advanced - session layer

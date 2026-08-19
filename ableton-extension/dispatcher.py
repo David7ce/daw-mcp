@@ -11,6 +11,7 @@ from .handlers.project import ProjectHandler
 from .handlers.transport import TransportHandler
 from .handlers.track import TrackHandler
 from .handlers.clip import ClipHandler
+from .handlers.device import DeviceHandler
 
 
 class CommandDispatcher:
@@ -31,6 +32,7 @@ class CommandDispatcher:
             'transport': TransportHandler(self),
             'track': TrackHandler(self),
             'clip': ClipHandler(self),
+            'device': DeviceHandler(self),
         }
 
     @property
@@ -71,12 +73,13 @@ class CommandDispatcher:
             # Find handler
             handler = self.handlers.get(category)
             if not handler:
-                # Device and browser tools are Bitwig-only. Say so plainly rather
-                # than reporting an unknown category, which reads like a bug.
-                if category in ('device', 'browser'):
+                # Device loading goes through Bitwig's popup browser, which has
+                # no Ableton equivalent. Say so plainly rather than reporting an
+                # unknown category, which reads like a bug.
+                if category == 'browser':
                     return self._error(
                         request_id, -32601,
-                        "The '" + category + "' tools are Bitwig-only and are not "
+                        "The 'browser' tools are Bitwig-only and are not "
                         "supported by the Ableton Remote Script."
                     )
                 return self._error(request_id, -32601, "Unknown category: " + category)
