@@ -63,6 +63,24 @@ Then select "AbletonMCP" as a control surface in Live's preferences (Link, Tempo
 `browser.*` methods return a clear "Bitwig-only" error - Live has no
 equivalent of Bitwig's popup browser.
 
+## Testing
+
+Smoke tests against a faked Live API - no Ableton instance needed, and none
+of them talk to the real `Live` module. Run from the repo root:
+
+```bash
+python tests/test_ableton_device_handler.py -v
+python tests/test_ableton_clip_handler.py -v
+python tests/test_ableton_track_handler.py -v
+python tests/test_ableton_project_transport_handler.py -v
+```
+
+Also run automatically on every push/PR by `.github/workflows/test.yml`.
+The fakes check this extension's own logic (validation, unit conversion,
+value normalization) - not that the real Live API objects behave the way
+the fakes assume, so a live smoke test is still worth doing after any
+change here.
+
 ## Limitations vs Bitwig
 
 Some Bitwig features are not available in Ableton's Live API:

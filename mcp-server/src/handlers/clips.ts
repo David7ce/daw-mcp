@@ -15,7 +15,8 @@ async function findEmptySlotsWithAutoCreate(
   daw: DAWType | undefined,
   trackIndex: number,
   startSlot: number,
-  count: number
+  count: number,
+  settleDelayMs: number
 ): Promise<{
   emptySlots: number[];
   found: number;
@@ -37,8 +38,12 @@ async function findEmptySlotsWithAutoCreate(
 
       if (createResult.success) {
         scenesCreated = createResult.created;
-        // Small delay to allow Bitwig's observer to update scene count
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Delay to allow Bitwig's observer to update scene count - same
+        // settle delay used everywhere else in this codebase, not a
+        // separate shorter magic number (see the identical fix in
+        // tracks.ts for why a too-short delay here is a real, not just
+        // theoretical, risk).
+        await new Promise(resolve => setTimeout(resolve, settleDelayMs));
         // Retry finding empty slots with the new scene count
         emptyResult = await findEmptySlots(dawManager, daw, trackIndex, startSlot, count);
       }
@@ -148,7 +153,7 @@ export async function handleBatchCreateClips(ctx: HandlerContext): Promise<ToolR
     // If no clips array or empty, create one clip at first empty slot from cursor
     if (!clips || clips.length === 0) {
       const cursor = await ensureCursor();
-      const emptyResult = await findEmptySlotsWithAutoCreate(dawManager, daw, cursor.trackIndex, cursor.slotIndex, 1);
+      const emptyResult = await findEmptySlotsWithAutoCreate(dawManager, daw, cursor.trackIndex, cursor.slotIndex, 1, config.mcp.selectionDelayMs);
       if (emptyResult.found === 0) {
         return errorResult(`No empty slots available even after attempting to create scenes. Scene count: ${emptyResult.sceneCount}`);
       }
@@ -241,7 +246,7 @@ export async function handleBatchCreateClips(ctx: HandlerContext): Promise<ToolR
           }
         } else {
           // Mode A: Auto-find empty slot from cursor position (with auto-scene-creation)
-          const emptyResult = await findEmptySlotsWithAutoCreate(dawManager, daw, trackIndex, cursorSlot!, 1);
+          const emptyResult = await findEmptySlotsWithAutoCreate(dawManager, daw, trackIndex, cursorSlot!, 1, config.mcp.selectionDelayMs);
           if (emptyResult.found === 0) {
             errors.push({
               index: i,
