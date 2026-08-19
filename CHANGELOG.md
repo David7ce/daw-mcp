@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-19, TrackHandler.java test coverage
+
+- Added `bitwig-extension/src/test/java/.../TrackHandlerTest.java` (JUnit 5
+  + Mockito, same style as the other three handler test files): 21 tests
+  covering existence validation before every mutating call
+  (`getValidatedTrack`), the create-type dispatch table (instrument/audio/
+  effect/fx, case-insensitive, unknown type throws without touching
+  `Application`), volume/pan clamping to 0-1, and the `setImmediately`-not-
+  `set` regression guard - `set(double)` is silently discarded by Bitwig's
+  controller take-over strategy, the same class of bug documented for
+  `DeviceHandler.setParameter` in CLAUDE.md.
+  Hit one real compile error along the way: `Track.name()` returns
+  `SettableStringValue`, not the plain `StringValue` I'd assumed by analogy
+  with the read-only fields - the compiler caught it immediately since
+  Mockito's `thenReturn` is type-checked against the mocked method's actual
+  return type.
+  88 tests total now (13 Device + 31 Browser + 23 Clip + 21 Track), all
+  pass via `gradle test`.
+
 ## 2026-08-19, clips.ts test coverage
 
 - Added `mcp-server/src/handlers/clips.test.ts` (Node's built-in
