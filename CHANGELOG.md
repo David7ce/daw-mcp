@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-08-19, remaining ableton-extension test coverage
+
+- Added `tests/test_ableton_track_handler.py` (17 tests): track CRUD
+  (create resolves position=-1 to the current track count, audio vs.
+  instrument/effect dispatch to different Live API calls), a broken track
+  being skipped rather than crashing `handle_list` (same pattern as
+  `clip.py`'s list handler), `arm` defaulting to `False` when the Live
+  object lacks the attribute, and a missing `mixer_device` omitting
+  volume/pan instead of raising. Caught and fixed a mutable-default-
+  argument bug in my own fake (`FakeTrack(mixer_device=FakeMixerDevice())`
+  evaluates once and shares that instance across every call that omits
+  the argument) before it could cause cross-test state leakage - replaced
+  with a sentinel so each track gets its own fresh mixer device.
+- Added `tests/test_ableton_project_transport_handler.py` (3 tests):
+  `project.py`'s field mapping (cheap insurance against a typo'd Live API
+  attribute name) and `transport.py`'s one real branch (missing `beats`
+  raises, and the value is coerced to float).
+- 59 Python tests total (25 clip + 14 device + 17 track + 3 project/
+  transport), all pass. This completes ableton-extension - the remaining
+  files (`manager.py`, `tcp_server.py`, `dispatcher.py`, `base.py`,
+  `__init__.py`) are non-blocking-socket/scheduler plumbing, the same
+  category left untested on the other two components.
+
 ## 2026-08-19, remaining mcp-server test coverage
 
 Completed test coverage for every remaining `mcp-server` file with real
