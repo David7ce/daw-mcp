@@ -201,6 +201,13 @@ The global `gridResolution` setting affects both DAWs:
 ## Protocol
 
 JSON-RPC 2.0 over TCP. Methods use dot notation: `track.list`, `clip.setNote`, `clip.getNotes`, etc.
+See `docs/PROTOCOL.md` for the full method reference and `docs/ARCHITECTURE.md`
+for component layout.
+
+**Composing actual music with these tools** (what to search for, what to
+write, genre-specific note/rhythm recipes, how to verify harmony landed
+correctly) is a different layer than the tool mechanics documented below -
+see `docs/MUSIC_COMPOSITION_GUIDE.md`.
 
 ## Unified Tool API
 
