@@ -150,7 +150,7 @@ Both extensions and the MCP server read from a shared config file:
   },
   "tools": {
     "transpose_clip": true,
-    "batch_operations": false
+    "batch_move_notes": false
   }
 }
 ```
@@ -204,12 +204,11 @@ batch_set_notes({daw: "bitwig", notes: [[0, 60, 100, 0.5]]})
 | Project | `get_project_info` |
 | Tracks | `list_tracks` |
 | Clips | `batch_list_clips`, `batch_create_clips`, `batch_delete_clips`, `set_clip_length` |
-| Devices | `list_devices`, `select_device`, `get_device_parameters`, `set_device_parameter` |
+| Devices | `list_devices`, `select_device`, `get_device_parameters`, `set_device_parameter`, `delete_device`, `list_parameter_pages`, `select_parameter_page` |
 | Device Loading | `load_device`, `search_browser` |
 | MIDI Notes | `batch_get_notes`, `batch_set_notes`, `batch_clear_notes` |
 | Analysis | `get_clip_stats` - stats + Tonal.js chord/scale/key detection |
 | Generative | `batch_create_euclid_pattern` - Euclidean rhythms (multi-track/clip) |
-| Smart Ops | `batch_operations` |
 
 ### Optional Tools (Disabled by Default)
 
@@ -224,7 +223,6 @@ Enable in config with `"tool_name": true`:
 | `batch_create_tracks` | Create multiple tracks |
 | `batch_delete_tracks` | Delete multiple tracks |
 | `batch_set_track_properties` | Volume, pan, mute, solo |
-| `transport_set_position` | Set playback position |
 | `browser_open` | Precise browser filter control |
 | `browser_set_content_type` | Diagnostic only - verified non-functional in Bitwig |
 | `browser_set_filter` | Precise browser filter control |
@@ -284,7 +282,7 @@ batch_set_notes({daw: "ableton", notes: [[0, 60, 100, 0.5]]})
 - `batch_get_notes`, `batch_set_notes`, `batch_clear_notes`, `set_clip_length`
 - `batch_list_clips` (trackIndex only)
 - `get_clip_stats`, `batch_create_euclid_pattern`
-- Optional: `transpose_clip`, `batch_move_notes`, `batch_set_note_properties`, `transpose_range`, `batch_operations`
+- Optional: `transpose_clip`, `batch_move_notes`, `batch_set_note_properties`, `transpose_range`
 
 ### Device Control - Cursor Device Model
 
@@ -452,7 +450,7 @@ This pull-based approach is reliable and synchronous, avoiding race conditions w
 
 ### Clip Selection Timing
 
-When providing explicit `trackIndex/slotIndex` parameters (instead of using cursor), a delay is added to allow the cursor clip to follow the selection (configurable via `mcp.selectionDelayMs`, default 400ms). This only applies when parameters are explicitly provided. Using cursor selection (omitting parameters) is instant. See `docs/OPTIMIZATION_IDEAS.md` Section 8 for observer-based settlement detection approach (deferred).
+When providing explicit `trackIndex/slotIndex` parameters (instead of using cursor), a delay is added to allow the cursor clip to follow the selection (configurable via `mcp.selectionDelayMs`, default 400ms). This only applies when parameters are explicitly provided. Using cursor selection (omitting parameters) is instant. An observer-based settlement detection approach (replacing the fixed delay with a signal that the cursor has actually moved) was considered and deferred — no ETA.
 
 ### Ultra-Lean Note Format
 
@@ -558,3 +556,19 @@ Read-only via observer:
 Some Bitwig features are not available in Ableton's Live API:
 - Note chance, timbre, transpose, gain, pan (per-note MPE properties)
 - Cursor clip tracking is polling-based (~100ms vs instant in Bitwig)
+- `load_device`, `search_browser`, and the `browser_*` session tools are
+  Bitwig-only - device loading goes through Bitwig's popup browser, which has
+  no Ableton equivalent. Calling them with `daw: "ableton"` returns a clear
+  error rather than doing nothing.
+- `list_parameter_pages`/`select_parameter_page` are Bitwig-only - Ableton
+  devices have no equivalent of Bitwig's fixed 8-slot remote-control page.
+  `get_device_parameters` on Ableton returns every parameter on the device
+  directly instead of one page of 8; `set_device_parameter`'s `index` is a
+  position in that full list, not a page slot.
+
+**Device parameters are value-normalized, not passed through raw.** Bitwig's
+remote controls are natively 0.0-1.0. Ableton's `DeviceParameter.value` is in
+the device's native range (e.g. Hz, dB) instead, so the Ableton extension
+normalizes reads/writes against `param.min`/`param.max` to keep the tool's
+0.0-1.0 contract consistent across both DAWs. Quantized parameters (toggles,
+enum choices) are rounded to the nearest integer step on write.

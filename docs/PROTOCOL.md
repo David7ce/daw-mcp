@@ -269,7 +269,7 @@ Set track arm state.
 
 **Result:** `{"success": true}`
 
-#### `track.select` (Bitwig only)
+#### `track.select`
 
 Select a track in the DAW UI.
 
@@ -808,6 +808,13 @@ Device operations act on the **cursor track's** device chain - whatever track
 is selected in the DAW UI. There is no `trackIndex` parameter; the MCP server
 sends `track.select` first when a caller supplies one.
 
+`list`, `select`, `delete`, `getParameters`, and `setParameter` are
+implemented on both DAWs. `listParameterPages`/`selectParameterPage` are
+Bitwig only - Ableton devices have no remote-control-page concept, so
+`device.getParameters` on Ableton returns every parameter on the device
+directly (not one page of 8), and Ableton normalizes each parameter's native
+range to 0.0-1.0 to match Bitwig's contract.
+
 #### `device.list`
 
 List devices in the cursor track's chain.
@@ -848,7 +855,7 @@ Delete the device at a chain position.
 
 **Result:** `{"success": true}`
 
-#### `device.listParameterPages`
+#### `device.listParameterPages` (Bitwig only)
 
 List the cursor device's remote control pages. The 8 parameters returned by
 `device.getParameters` belong to one page.
@@ -864,7 +871,7 @@ List the cursor device's remote control pages. The 8 parameters returned by
 }
 ```
 
-#### `device.selectParameterPage`
+#### `device.selectParameterPage` (Bitwig only)
 
 Switch the active page.
 

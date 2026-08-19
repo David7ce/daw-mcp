@@ -47,7 +47,7 @@ Key files:
 - `src/index.ts` - Entry point
 - `src/server.ts` - MCP server setup and request routing
 - `src/tools/definitions.ts` - Tool JSON schemas
-- `src/handlers/device.ts` - Device chain and parameter tools (Bitwig)
+- `src/handlers/device.ts` - Device chain and parameter tools (both DAWs)
 - `src/handlers/browser.ts` - Browser session primitives (Bitwig)
 - `src/handlers/browser-load.ts` - Atomic load_device / search_browser (Bitwig)
 - `src/helpers/browser-match.ts` - Deterministic result matching
@@ -90,6 +90,8 @@ Key files:
 - `tcp_server.py` - Non-blocking TCP server
 - `dispatcher.py` - Routes commands to handlers
 - `handlers/clip.py` - MIDI note operations
+- `handlers/track.py` - Track list/create/delete/select/properties
+- `handlers/device.py` - Device chain and parameter tools (no page concept)
 
 ## Communication Protocol
 
@@ -134,7 +136,8 @@ batch_set_notes({daw: "bitwig", notes: [...]})
 | Project | `get_project_info` |
 | Tracks | `list_tracks` |
 | Clips | `batch_list_clips`, `batch_create_clips`, `batch_delete_clips`, `set_clip_length` |
-| Devices (Bitwig) | `list_devices`, `select_device`, `delete_device`, `get_device_parameters`, `set_device_parameter` |
+| Devices | `list_devices`, `select_device`, `delete_device`, `get_device_parameters`, `set_device_parameter` |
+| Parameter Pages (Bitwig) | `list_parameter_pages`, `select_parameter_page` |
 | Device Loading (Bitwig) | `load_device`, `search_browser` |
 | MIDI Notes | `batch_get_notes`, `batch_set_notes`, `batch_clear_notes` |
 | Analysis | `get_clip_stats` (includes Tonal.js chord/scale detection, grid detection with confidence) |
@@ -184,6 +187,9 @@ See `docs/example-config.json` for all options.
 | Note velocity/duration/mute | Yes | Yes |
 | Note gain/pan/timbre/chance/transpose | Yes | No (API limitation) |
 | Cursor clip tracking | Instant | ~100ms polling |
+| Device list/select/delete/parameters | Yes | Yes (values normalized to 0.0-1.0) |
+| Device parameter pages | Yes | No (no page concept in Live's API) |
+| Device loading / browser | Yes | No (no equivalent to Bitwig's popup browser) |
 
 ### Implementation Gaps
 
@@ -192,7 +198,6 @@ Features that are possible but not yet implemented:
 | Feature | Bitwig | Ableton | Priority |
 |---------|--------|---------|----------|
 | Transport stop | Yes | Missing | Medium |
-| Track select | Yes | Missing | Low |
 | Track pan/arm | Yes | Missing | Low |
 | Delete scene | Missing | Missing | Low |
 
