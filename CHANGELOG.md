@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-08-19, ponytail-audit cleanup
+
+Repo-wide over-engineering audit (ponytail-audit skill) found and fixed 4
+issues - all applied, no findings left pending:
+
+- Deleted `mcp-server/src/handlers/index.ts` (33-line barrel, zero
+  importers - `server.ts` already imports every handler directly from its
+  own module).
+- Deleted `mcp-server/src/tools/index.ts` (5-line barrel with exactly one
+  caller wrapping exactly one file); `server.ts` now imports
+  `createToolDefinitions` directly from `./tools/definitions.js`.
+- Deduplicated `successResponse()` (`{"success": true}`) across the 6
+  Bitwig Java handler classes into one shared `JsonResponses.java`
+  utility, imported via `import static`. Along the way found
+  `ProjectHandler.java`'s copy was already 100% dead - `getProjectInfo()`
+  builds its own `JsonObject` directly and never called it - so that one
+  was removed outright with no import added back.
+- Stripped `ableton-extension/handlers/__init__.py`'s five re-imports -
+  `dispatcher.py` imports every handler directly from its submodule, never
+  through this barrel. The re-import list was also stale (missing
+  `DeviceHandler`, added after this file was last touched), which was
+  itself the tell that nothing depended on it.
+
+Verified after each change: `npm run build` + `npm test` (78 tests),
+`gradle test` (108 tests), all four `tests/test_ableton_*.py` files (59
+tests) - all still green.
+
 ## 2026-08-19, fixed the unreachable ping bug
 
 - Fixed `CommandDispatcher.java`'s `dispatch()`: bare `ping` (no dot) is now

@@ -5,6 +5,8 @@ import com.google.gson.*;
 
 import com.pxaudio.bitwigmcp.BitwigMCPExtension;
 
+import static com.pxaudio.bitwigmcp.handlers.JsonResponses.successResponse;
+
 
 /**
  * Handles clip operations: list, create, delete, and MIDI note manipulation.
@@ -23,12 +25,6 @@ public class ClipHandler {
      */
     private Clip getClip() {
         return extension.getCursorClip();
-    }
-
-    private static JsonObject successResponse() {
-        JsonObject result = new JsonObject();
-        result.addProperty("success", true);
-        return result;
     }
 
     private static String midiNoteToName(int midiNote) {

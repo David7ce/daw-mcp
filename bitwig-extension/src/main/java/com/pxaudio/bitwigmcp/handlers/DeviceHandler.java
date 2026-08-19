@@ -5,6 +5,8 @@ import com.google.gson.*;
 
 import com.pxaudio.bitwigmcp.BitwigMCPExtension;
 
+import static com.pxaudio.bitwigmcp.handlers.JsonResponses.successResponse;
+
 /**
  * Handles device operations: list devices in the cursor track's chain,
  * select the cursor device, read/write its 8 generic remote control parameters.
@@ -16,12 +18,6 @@ public class DeviceHandler {
     public DeviceHandler(BitwigMCPExtension extension, ControllerHost host) {
         this.extension = extension;
         this.host = host;
-    }
-
-    private static JsonObject successResponse() {
-        JsonObject result = new JsonObject();
-        result.addProperty("success", true);
-        return result;
     }
 
     public JsonElement handle(String action, JsonObject params) {

@@ -17,12 +17,6 @@ public class ProjectHandler {
         this.host = host;
     }
 
-    private static JsonObject successResponse() {
-        JsonObject result = new JsonObject();
-        result.addProperty("success", true);
-        return result;
-    }
-
     public JsonElement handle(String action, JsonObject params) {
         switch (action) {
             case "getInfo":
