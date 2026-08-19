@@ -1,5 +1,52 @@
 # Changelog
 
+## 2026-08-19, remaining bitwig-extension test coverage - completes the full-repo test audit
+
+- Added `ProjectHandlerTest.java` (4 tests): the tempo-normalization
+  formula (Bitwig stores tempo as 0-1 representing 20-666 BPM) at both
+  endpoints and the midpoint, plus the field passthrough.
+- Added `TransportHandlerTest.java` (7 tests): `togglePlay`'s play/stop
+  branch based on current state, `toggleRecord`, `setPosition`'s
+  required-param check, and `getStatus`.
+- Added `CommandDispatcherTest.java` (9 tests): method-format validation
+  and category routing. Routing is verified indirectly - each handler's
+  own "Unknown X action" message names the handler, so reaching that
+  specific message (not the dispatcher's own "Unknown category") proves
+  the category reached the right handler, without needing a full Bitwig
+  API mock for a real success path.
+  **Found a real bug while writing this**: `ping` (documented in
+  PROTOCOL.md as a bare, dot-less method) is unreachable. `dispatch()`
+  splits the method on "." and throws "Invalid method format" if that
+  yields fewer than 2 parts - but a dot-less `"ping"` only ever yields 1
+  part, so that check throws before the switch statement's `case "ping"`
+  is ever reached. The case is dead code. This has gone unnoticed because
+  `mcp-server/src/daw-client.ts` uses `project.getInfo` for its
+  connectivity check instead of calling `ping` - so the dead path has
+  zero current impact, but it's real and PROTOCOL.md's documented
+  behavior for it is wrong. Left unfixed pending a decision on whether to
+  fix `CommandDispatcher.java` or `PROTOCOL.md` (both are one-line
+  changes) - flagged in the session rather than silently patched, since
+  it's a behavior question beyond "add tests".
+- `ConfigReader.java` was deliberately left untested for the same reason
+  as `config.ts`'s `loadConfig()`: it reads the user's real
+  `%APPDATA%\daw-mcp\config.json` (or platform equivalent) with no
+  injection point (`getConfigFile()` is private, and the constructor
+  calls `load()` unconditionally), so a test can't safely redirect it
+  without either touching that real path or reflection-hacking process
+  environment variables.
+- 108 Java tests total (13 Device + 31 Browser + 23 Clip + 21 Track + 4
+  Project + 7 Transport + 9 CommandDispatcher), all pass via
+  `gradle test`.
+
+This completes the full-repo test-coverage audit across all three
+components (mcp-server, bitwig-extension, ableton-extension). Everything
+with real branching/transformation logic now has tests; what's left
+untested is exclusively TCP/socket/protocol-wiring plumbing
+(`daw-client.ts`, `server.ts`, `index.ts`, `BitwigMCPExtension.java`,
+`MCPServer.java`, `manager.py`, `tcp_server.py`, `dispatcher.py`,
+`base.py`) or code that reads the user's real config path with no safe
+injection point (`config.ts`'s `loadConfig`, `ConfigReader.java`).
+
 ## 2026-08-19, remaining ableton-extension test coverage
 
 - Added `tests/test_ableton_track_handler.py` (17 tests): track CRUD
