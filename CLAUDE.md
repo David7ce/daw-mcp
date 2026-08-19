@@ -57,6 +57,7 @@ Creates a distributable ZIP with all components:
 
 ```bash
 ./scripts/release.sh 1.0.0
+# Windows: .\scripts\release.ps1 1.0.0
 ```
 
 **Output:** `release/daw-mcp-1.0.0.zip` (~325KB)

@@ -70,7 +70,7 @@ Download the latest release ZIP from [Releases](../../releases) and extract it s
 
 You'll get:
 ```
-daw-mcp-0.8.2/
+daw-mcp-<version>/
 ├── BitwigMCP.bwextension    # Bitwig extension
 ├── AbletonMCP/              # Ableton Remote Script folder
 ├── mcp-server.js            # The bridge (runs on Node.js)
@@ -272,6 +272,9 @@ cd daw-mcp
 ./scripts/release.sh 1.0.0
 # Output: release/daw-mcp-1.0.0.zip
 ```
+
+On Windows, use `scripts\release.ps1` instead (same output, same version
+argument, defaults to the version in `mcp-server/package.json` if omitted).
 
 Requires: Node.js 18+, Java 11+ (JDK), Gradle 8.x
 
