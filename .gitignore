@@ -12,6 +12,10 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Python
+__pycache__/
+*.pyc
+
 # IDE
 .idea/
 *.iml

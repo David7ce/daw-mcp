@@ -1,5 +1,50 @@
 # Changelog
 
+## 2026-08-19, ClipHandler/clip.py test coverage + CI
+
+Follow-up to a full-repo audit that flagged the two biggest, most central
+handler files (MIDI note read/write - the actual core feature) as having
+zero test coverage, unlike the smaller Device/Browser handlers.
+
+- Added `bitwig-extension/src/test/java/.../ClipHandlerTest.java` (JUnit 5 +
+  Mockito, same style as DeviceHandlerTest/BrowserHandlerTest): 23 tests
+  covering beat<->step unit conversion (x/dx are beats on the wire but
+  Bitwig's API takes step indices - this was a real bug once, per the
+  "Note positions are always beats" section above), track-existence
+  bounds-checking, and the iteration/filtering in getNotes/
+  clearNotesAtPitch/findEmptySlots (scene-count bound, requested-count
+  cutoff). Pure one-line delegation (setClipName, transposeClip, stopClip,
+  setClipLength) wasn't covered - no logic there to break.
+  Hit a genuine Mockito trap along the way: calling a stubbing helper
+  method (e.g. `trackMissing()`) as a *direct argument* to another mock's
+  `.thenReturn(...)` throws `UnfinishedStubbingException`, because the
+  outer stub is still "open" while the helper's own `when()` call starts.
+  `trackExisting()`-based tests always assigned to a local variable first
+  and never hit this; the four `trackMissing()` call sites and two
+  `noteOnStep()`/`emptyStep()` inline calls did, and were fixed the same
+  way (assign to a local, then pass the local). All 67 tests (13 Device +
+  31 Browser + 23 Clip) pass via `gradle test`.
+- Added `tests/test_ableton_clip_handler.py` (stdlib `unittest`, same style
+  as `test_ableton_device_handler.py`, run directly as a script - not
+  discoverable as a package since `ableton-extension/` isn't an importable
+  name): 25 tests against a faked Live API, including a faked
+  `Live.Clip.MidiNoteSpecification` (monkey-patched onto the `clip` module
+  after import) so the note-writing paths - which otherwise raise "Live
+  API not available" when the real `Live` import fails - could actually be
+  exercised. Covers tolerance-based note matching (clear/move/modify a
+  note by x/y position), pitch clamping on move/transpose (notes pushed
+  outside 0-127 are dropped), both wire note formats (ultra-lean array vs.
+  object) in setNotes, velocity normalization in getNotes, a broken clip
+  being skipped rather than crashing handle_list, and findEmptySlots
+  respecting both the requested count and the actual scene-count bound.
+  All pass against the real `clip.py`.
+- Added `.github/workflows/test.yml`: one GitHub Actions job per component
+  (mcp-server on Node 20, bitwig-extension on JDK 17 via
+  `gradle/actions/setup-gradle@v6` pinned to Gradle 8.14 to match what's
+  verified working locally, ableton-extension on Python 3.x), running on
+  every push/PR to main. Nothing previously caught a regression
+  automatically - all three suites were manual-only.
+
 ## 2026-08-19, tracks.ts test coverage
 
 - Added `mcp-server/src/handlers/tracks.test.ts` (Node's built-in
