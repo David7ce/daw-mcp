@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-08-19, settle-delay fix deployed and regression-tested live
+
+- Rebuilt (`npm run bundle`), copied to the installed path
+  (`C:\Users\d7\.local\daw-mcp\mcp-server\dist\mcp-server.js`), and killed
+  the running node process to force a respawn - confirmed the harness
+  auto-respawns it immediately (a new PID appeared within ~3s of the kill,
+  no manual restart needed beyond killing the old one).
+- **Regression-tested the exact original failure scenario** in the live
+  `Instrumental-Rock.bwproject`: created an effect track ("FX Test"), then
+  a new instrument track with `position: -1` - the same sequence that
+  previously mis-fired. This time the new track landed correctly at its
+  own index with a fresh auto-generated color, and the effect track stayed
+  untouched at its own index, unrenamed. Fix confirmed working live, not
+  just via the mocked unit tests. Cleaned up both test tracks afterward.
+- Also audited for the same bug class elsewhere: grepped every
+  `setTimeout` in `mcp-server/src` (13 call sites) - all now use
+  `config.mcp.selectionDelayMs` consistently, the one exception
+  (`daw-client.ts`'s per-request timeout) being a legitimately different,
+  already-configurable value. Grepped `bitwig-extension`/`ableton-extension`
+  for `Thread.sleep`/`sleep(` - zero hits; all settle-timing logic lives
+  in the TS layer by design, so there was nothing to check there.
+
 ## 2026-08-19, two full songs composed live via the MCP tools - free-form composition confirmed viable
 
 Built two complete instrumental arrangements this session entirely through
