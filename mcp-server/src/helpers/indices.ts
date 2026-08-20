@@ -24,3 +24,15 @@ export function quantizeForBitwig(beats: number, config: Config): number {
   const stepSize = getStepSize(config);
   return Math.round(beats / stepSize) * stepSize;
 }
+
+/**
+ * Quantize a note duration to the configured grid, same as quantizeForBitwig
+ * but never rounds down to 0 - a duration below half a grid step (e.g. from
+ * a real-audio transcription) would otherwise quantize to exactly 0, which
+ * Bitwig's note-insert API rejects outright ("insertDuration must be > 0.0").
+ * Unlike position, a duration of 0 is never meaningful, so the floor is safe.
+ */
+export function quantizeDurationForBitwig(beats: number, config: Config): number {
+  const stepSize = getStepSize(config);
+  return Math.max(stepSize, quantizeForBitwig(beats, config));
+}

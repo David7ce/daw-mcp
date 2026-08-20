@@ -2,7 +2,7 @@
  * Helper module exports.
  */
 
-export { toInternal, toUser, quantizeForBitwig } from './indices.js';
+export { toInternal, toUser, quantizeForBitwig, quantizeDurationForBitwig } from './indices.js';
 export {
   resolveClipIndices,
   slotHasContent,
