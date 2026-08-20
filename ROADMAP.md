@@ -35,19 +35,6 @@ after a reload.
   `TODO.md` item — the fakes in `tests/test_ableton_device_handler.py`
   check the handler's own logic, not that the real Live API objects behave
   the way the fakes assume).
-- **Bitwig build/deploy friction.** No `gradlew` wrapper in
-  `bitwig-extension/`, and `gradle` isn't on this machine's PATH — building
-  currently requires locating a cached Gradle binary manually (see
-  `.gradle/wrapper/dists/` for whichever version was last used elsewhere).
-  Worth adding a wrapper so `./gradlew build copyExtension` just works.
-- **`copyExtension`'s output filename.** The Gradle task copies the built
-  jar into Bitwig's Extensions folder under its Gradle-generated name
-  (`daw-mcp-<version>.bwextension`), not `BitwigMCP.bwextension` — the name
-  Bitwig actually has enabled. Every manual rebuild this session required
-  renaming the output by hand or Bitwig silently kept running the stale
-  jar. Fix the Gradle task to name its output correctly, or document this
-  loudly in `bitwig-extension/`'s own docs so it isn't rediscovered the
-  hard way again.
 
 ## Workflow bridge to audio2score-mcp
 
