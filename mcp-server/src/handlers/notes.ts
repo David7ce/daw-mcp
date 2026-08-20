@@ -4,7 +4,7 @@
  */
 
 import { HandlerContext, ToolResult, successResult, errorResult, sortNotes } from './types.js';
-import { toInternal, toUser, quantizeForBitwig, selectClipIfNeeded } from '../helpers/index.js';
+import { toInternal, toUser, quantizeForBitwig, quantizeDurationForBitwig, selectClipIfNeeded } from '../helpers/index.js';
 
 /** Handle batch_get_notes (multi-clip, single clip, or cursor clip) */
 export async function handleBatchGetNotes(ctx: HandlerContext): Promise<ToolResult> {
@@ -110,7 +110,7 @@ export async function handleBatchSetNotes(ctx: HandlerContext): Promise<ToolResu
       ? notes.map(n => ({
           ...n,
           x: quantizeForBitwig(n.x, config),
-          duration: n.duration !== undefined ? quantizeForBitwig(n.duration, config) : undefined
+          duration: n.duration !== undefined ? quantizeDurationForBitwig(n.duration, config) : undefined
         }))
       : notes;
 

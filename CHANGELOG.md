@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-08-20, fixed a real crash found via real-audio transcription, full audio2score-mcp pipeline verified live
+
+- **Fixed a real bug**: `batch_set_notes` on Bitwig threw
+  `"Internal error: Parameter insertDuration (=0.0) must be > 0.0"` for
+  any note whose duration quantized to exactly 0 on the grid (e.g. a
+  0.0833-beat duration at the default 0.25 stepSize). `quantizeForBitwig`
+  rounds to the nearest step with no floor, and very short durations -
+  which don't show up in hand-written test data but are common in
+  real-audio transcription output - round straight to 0. Fixed by adding
+  `quantizeDurationForBitwig` (floors to one grid step, `x`/position
+  quantization is untouched since 0 is a valid position but never a valid
+  duration) and switching both call sites (`notes.ts`, `euclid.ts`) to it.
+  New test in `indices.test.ts`. Found live: transcribing a real recording
+  ("O Tannenbaum", public domain, Wikimedia Commons) through
+  `audio2score-mcp` and bridging the output into `batch_set_notes` hit
+  this on the very first real (non-synthetic) transcription tested with
+  short notes - every prior test in this repo used either hand-picked
+  round durations or synthetic tones with long, uniform notes.
+- **Verified the full pipeline against real, downloaded, non-synthetic
+  content for the first time** (prior sessions used synthetic tones or
+  hand-crafted MIDI):
+  - A real recorded instrumental (`"O Tannenbaum".ogg`, CC0, Wikimedia
+    Commons) through `transcribe_audio` → `midi_to_score` → `midi_to_notes`
+    → `batch_set_notes` (340 notes after the fix, spanning 89 beats) →
+    `get_clip_stats`. Real transcription noise was visible and expected
+    (pitch range ballooned to 31-81, well beyond one melodic line, from
+    basic-pitch detecting sub-harmonics on a real recording) - the chord
+    analysis correctly reported no clean suggested key for the noisy
+    input rather than forcing one, which is the right behavior facing
+    genuinely messy data.
+  - A real downloaded MIDI (`Alle Meine Entchen.mid`, public domain
+    children's song, Wikimedia Commons) through `midi_to_score`/
+    `midi_to_notes` directly (skipping transcription) → `batch_set_notes`
+    (27 notes) → `get_clip_stats`, which correctly detected C major with
+    all pitch classes exactly diatonic - a clean contrast case against
+    the noisy transcribed audio above, confirming the bridge is exact
+    when the input MIDI already is.
+  - Both scratch tracks/clips deleted after via `batch_delete_tracks`,
+    project confirmed back to its original state.
+
 ## 2026-08-20, gradlew wrapper and copyExtension fix
 
 - Added `bitwig-extension/gradlew`/`gradlew.bat` (generated via

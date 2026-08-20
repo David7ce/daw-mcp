@@ -3,7 +3,7 @@
  */
 
 import { HandlerContext, ToolResult, successResult, errorResult } from './types.js';
-import { toInternal, toUser, quantizeForBitwig, slotHasContent } from '../helpers/index.js';
+import { toInternal, toUser, quantizeForBitwig, quantizeDurationForBitwig, slotHasContent } from '../helpers/index.js';
 import { patternsToNotes, EuclidPattern } from '../euclidean.js';
 
 interface ClipInput {
@@ -126,7 +126,7 @@ export async function handleBatchCreateEuclidPattern(ctx: HandlerContext): Promi
             return {
               ...note,
               x: quantizeForBitwig(note.x, config),
-              duration: quantizeForBitwig(note.duration, config)
+              duration: quantizeDurationForBitwig(note.duration, config)
             };
           }
           return note;
