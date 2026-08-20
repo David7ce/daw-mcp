@@ -74,9 +74,14 @@ task copyExtension(type: Copy) {
     dependsOn jar
     from jar.outputs.files
     into getBitwigExtensionsDir()
+    // Bitwig has the extension enabled under this fixed name, not the
+    // Gradle-generated "daw-mcp-<version>.bwextension" - renaming here is
+    // what makes Bitwig actually pick up a fresh build instead of silently
+    // keeping the stale jar.
+    rename { 'BitwigMCP.bwextension' }
 
     doLast {
-        println "Copied extension to: ${getBitwigExtensionsDir()}"
+        println "Copied extension to: ${getBitwigExtensionsDir()}/BitwigMCP.bwextension"
         println "Version: ${version}"
     }
 }
