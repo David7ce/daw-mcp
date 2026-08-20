@@ -20,7 +20,8 @@ import { handleListTracks, handleBatchCreateTracks, handleBatchSetTrackPropertie
 import { handleListDevices, handleSelectDevice, handleGetDeviceParameters, handleSetDeviceParameter, handleDeleteDevice, handleListParameterPages, handleSelectParameterPage } from './handlers/device.js';
 import { handleBrowserOpen, handleBrowserSetContentType, handleBrowserSetFilter, handleBrowserGetResults, handleBrowserSelect, handleBrowserCommit, handleBrowserCancel, handleBrowserGetState } from './handlers/browser.js';
 import { handleLoadDevice, handleSearchBrowser } from './handlers/browser-load.js';
-import { handleBatchListClips, handleBatchCreateClips, handleBatchDeleteClips, handleSetClipLength } from './handlers/clips.js';
+import { handleBatchListClips, handleBatchCreateClips, handleBatchDeleteClips, handleSetClipLength, handleLaunchClip, handleStopClip, handleLaunchScene, handleStopAllClips } from './handlers/clips.js';
+import { handleTransportPlay, handleTransportStop } from './handlers/transport.js';
 import { handleBatchGetNotes, handleBatchSetNotes, handleBatchClearNotes, handleBatchMoveNotes, handleBatchSetNoteProperties, handleTransposeClip, handleTransposeRange } from './handlers/notes.js';
 import { handleGetClipStats } from './handlers/analysis.js';
 import { handleBatchCreateEuclidPattern } from './handlers/euclid.js';
@@ -33,6 +34,10 @@ function createToolRegistry(): Map<string, ToolHandler> {
   return new Map<string, ToolHandler>([
     // Project (get_daws handled separately - doesn't need context)
     ['get_project_info', handleGetProjectInfo],
+
+    // Transport
+    ['transport_play', handleTransportPlay],
+    ['transport_stop', handleTransportStop],
 
     // Tracks
     ['list_tracks', handleListTracks],
@@ -68,6 +73,10 @@ function createToolRegistry(): Map<string, ToolHandler> {
     ['batch_create_clips', handleBatchCreateClips],
     ['batch_delete_clips', handleBatchDeleteClips],
     ['set_clip_length', handleSetClipLength],
+    ['launch_clip', handleLaunchClip],
+    ['stop_clip', handleStopClip],
+    ['launch_scene', handleLaunchScene],
+    ['stop_all_clips', handleStopAllClips],
 
     // Notes
     ['batch_get_notes', handleBatchGetNotes],

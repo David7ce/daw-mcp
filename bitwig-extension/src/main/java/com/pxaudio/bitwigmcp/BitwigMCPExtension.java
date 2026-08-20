@@ -63,6 +63,10 @@ public class BitwigMCPExtension extends ControllerExtension {
             cachedSceneCount = count;
             host.println("[MCP] Scene count updated: " + count);
         });
+        // Mark scene existence as interested so launchScene can validate the index
+        for (int s = 0; s < sceneBank.getSizeOfBank(); s++) {
+            sceneBank.getScene(s).exists().markInterested();
+        }
 
         cursorTrack = host.createCursorTrack("MCP_CURSOR", "MCP Cursor Track", config.getSends(), config.getScenes(), true);
 

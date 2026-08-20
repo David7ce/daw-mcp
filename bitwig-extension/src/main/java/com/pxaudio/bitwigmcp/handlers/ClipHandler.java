@@ -66,6 +66,12 @@ public class ClipHandler {
                 return deleteClip(params);
             case "stop":
                 return stopClip(params);
+            case "launch":
+                return launchClip(params);
+            case "launchScene":
+                return launchScene(params);
+            case "stopAllClips":
+                return stopAllClips();
             case "setName":
                 return setClipName(params);
 
@@ -193,6 +199,34 @@ public class ClipHandler {
 
         Track track = extension.getTrackBank().getItemAt(trackIndex);
         track.stop();
+        return successResponse();
+    }
+
+    private JsonElement launchClip(JsonObject params) {
+        int trackIndex = params.get("trackIndex").getAsInt();
+        int slotIndex = params.get("slotIndex").getAsInt();
+
+        Track track = extension.getTrackBank().getItemAt(trackIndex);
+        if (!track.exists().get()) {
+            throw new IllegalArgumentException("Track does not exist at index: " + trackIndex);
+        }
+        track.clipLauncherSlotBank().getItemAt(slotIndex).launch();
+        return successResponse();
+    }
+
+    private JsonElement launchScene(JsonObject params) {
+        int sceneIndex = params.get("sceneIndex").getAsInt();
+
+        SceneBank sceneBank = extension.getSceneBank();
+        if (!sceneBank.getScene(sceneIndex).exists().get()) {
+            throw new IllegalArgumentException("Scene does not exist at index: " + sceneIndex);
+        }
+        sceneBank.launchScene(sceneIndex);
+        return successResponse();
+    }
+
+    private JsonElement stopAllClips() {
+        extension.getSceneBank().stop();
         return successResponse();
     }
 

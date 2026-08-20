@@ -14,8 +14,22 @@ class TransportHandler(BaseHandler):
     Handles transport/playback operations.
 
     Methods:
+        - play: Start playback
+        - stop: Stop playback
         - setPosition: Set playback position in beats
     """
+
+    def handle_play(self, params):
+        """Start playback."""
+        self.song.start_playing()
+        logger.info("Started playback")
+        return self.success()
+
+    def handle_stop(self, params):
+        """Stop playback."""
+        self.song.stop_playing()
+        logger.info("Stopped playback")
+        return self.success()
 
     def handle_setPosition(self, params):
         """Set playback position in beats."""

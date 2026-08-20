@@ -21,6 +21,10 @@ public class TransportHandler {
 
     public JsonElement handle(String action, JsonObject params) {
         switch (action) {
+            case "play":
+                return play();
+            case "stop":
+                return stop();
             case "togglePlay":
                 return togglePlay();
             case "toggleRecord":
@@ -32,6 +36,16 @@ public class TransportHandler {
             default:
                 throw new IllegalArgumentException("Unknown transport action: " + action);
         }
+    }
+
+    private JsonElement play() {
+        extension.getTransport().play();
+        return successResponse();
+    }
+
+    private JsonElement stop() {
+        extension.getTransport().stop();
+        return successResponse();
     }
 
     private JsonElement togglePlay() {
