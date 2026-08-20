@@ -38,15 +38,13 @@ after a reload.
 
 ## Workflow bridge to audio2score-mcp
 
-`audio2score-mcp` (sibling project, `d:\Workspaces\David7ce-user\David7ce-code\cli\audio2score-mcp`)
-transcribes audio to MIDI/MusicXML — deliberately a separate repo (Python
-+ TensorFlow stack vs this project's Node+Java, and this project's own
-scope excludes notation/transcription work by design). The two connect at
-the workflow level: `transcribe_audio(song.mp3)` there produces a `.mid`
-file, which `batch_set_notes` here can read into a Bitwig/Ableton clip. No
-automated bridge exists yet — it's a manual hand-off, or something Claude
-does by reading one tool's output and calling the other's input. Worth a
-small bridge script only if this happens often enough to be worth it.
+`audio2score-mcp` (sibling project, `d:\Workspaces\David7ce-user\David7ce-code\cli\audio2score-mcp`,
+deliberately a separate repo — Python+TensorFlow stack vs this project's
+Node+Java, and notation/transcription work is out of this project's scope
+by design) transcribes audio to MIDI and bridges it into this project's
+`batch_set_notes` format. See its own `ROADMAP.md`'s "Workflow bridge to
+daw-mcp" section for the mechanics — not duplicated here to avoid the two
+copies drifting out of sync with each other.
 
 ## Ideas under consideration
 
