@@ -1,0 +1,64 @@
+# Roadmap
+
+## Recently shipped (this commit)
+
+Transport and clip-launcher control: `transport_play`, `transport_stop`,
+`launch_clip`, `stop_clip`, `launch_scene`, `stop_all_clips`. Implemented
+in parallel on both backends (Bitwig `ClipHandler.java`/`TransportHandler.java`,
+Ableton `clip.py`/`transport.py`) plus the shared MCP layer
+(`mcp-server/src/handlers/clips.ts`, new `transport.ts`).
+
+Verified live against a running Bitwig instance: `launch_clip`, `stop_clip`,
+`launch_scene`, `stop_all_clips`, `transport_play`, `transport_stop` all
+confirmed working via `batch_list_clips`'s `isPlaying` state. **Ableton's
+side of this feature is unverified against a real Ableton instance** — same
+caveat as the existing Ableton device-support gap in `TODO.md`.
+
+Also fixed as part of this work: `MCPServer.java`'s `stop()` used to close
+only the listening socket, leaving already-accepted client connections
+(including the MCP Node process's persistent connection) alive across a
+Bitwig extension reload — those stale connections kept talking to the dead
+pre-reload extension instance and returned degraded state (e.g. only
+"Master" track visible) with no error. Now `stop()` tracks and closes
+accepted sockets too, so a client reliably reconnects to the fresh instance
+after a reload.
+
+## Near-term
+
+- **Verify Ableton transport/clip-launcher parity live.** `handle_play`,
+  `handle_stop`, `handle_launch`, `handle_launchScene`,
+  `handle_stopAllClips` in the Ableton extension are implemented by direct
+  analogy to the Bitwig side and to existing Ableton handler patterns, but
+  have not been run against a real Ableton Live instance. Do this before
+  relying on cross-DAW parity claims for these six tools.
+- **Verify Ableton device support against a real Live instance** (existing
+  `TODO.md` item — the fakes in `tests/test_ableton_device_handler.py`
+  check the handler's own logic, not that the real Live API objects behave
+  the way the fakes assume).
+- **Bitwig build/deploy friction.** No `gradlew` wrapper in
+  `bitwig-extension/`, and `gradle` isn't on this machine's PATH — building
+  currently requires locating a cached Gradle binary manually (see
+  `.gradle/wrapper/dists/` for whichever version was last used elsewhere).
+  Worth adding a wrapper so `./gradlew build copyExtension` just works.
+- **`copyExtension`'s output filename.** The Gradle task copies the built
+  jar into Bitwig's Extensions folder under its Gradle-generated name
+  (`daw-mcp-<version>.bwextension`), not `BitwigMCP.bwextension` — the name
+  Bitwig actually has enabled. Every manual rebuild this session required
+  renaming the output by hand or Bitwig silently kept running the stale
+  jar. Fix the Gradle task to name its output correctly, or document this
+  loudly in `bitwig-extension/`'s own docs so it isn't rediscovered the
+  hard way again.
+
+## Ideas under consideration
+
+See `docs/ideas/` for deeper write-ups:
+- `humanization-matching.md` — extend `detectedGrid` with timing
+  distribution stats (mean/stdDev/max/bias) so newly generated notes can
+  match an existing clip's humanized feel instead of landing dead-on-grid.
+
+## Explicitly out of scope
+
+Unchanged from `CLAUDE.md`: arrangement view, Reaper support, MIDI/OSC
+alternatives to the DAW extension model. See `CLAUDE.md`'s "Scope" section
+for the reasoning — this remains a session-view/clip-launcher project by
+design, not an oversight to eventually fix.
