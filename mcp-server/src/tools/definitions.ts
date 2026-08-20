@@ -39,6 +39,18 @@ export function createToolDefinitions(config: Config): Tool[] {
         required: []
       }
     },
+    // Transport tools
+    {
+      name: 'transport_play',
+      description: 'Start playback.',
+      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
+    },
+    {
+      name: 'transport_stop',
+      description: 'Stop playback.',
+      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
+    },
+
     // Track tools
     {
       name: 'list_tracks',
@@ -278,6 +290,50 @@ export function createToolDefinitions(config: Config): Tool[] {
         },
         required: ['lengthInBeats']
       }
+    },
+
+    // Clip/scene launch tools
+    {
+      name: 'launch_clip',
+      description: 'Launch (play) a clip in the launcher.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based' },
+          slotIndex: { type: 'integer', description: 'Clip slot number, 1-based' }
+        },
+        required: ['trackIndex', 'slotIndex']
+      }
+    },
+    {
+      name: 'stop_clip',
+      description: 'Stop whatever clip is playing on a track.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          trackIndex: { type: 'integer', description: 'Track number, 1-based' }
+        },
+        required: ['trackIndex']
+      }
+    },
+    {
+      name: 'launch_scene',
+      description: 'Launch (play) a scene - fires every track\'s clip in that scene row.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          ...dawParam,
+          sceneIndex: { type: 'integer', description: 'Scene number, 1-based' }
+        },
+        required: ['sceneIndex']
+      }
+    },
+    {
+      name: 'stop_all_clips',
+      description: 'Stop every playing clip project-wide.',
+      inputSchema: { type: 'object', properties: { ...dawParam }, required: [] }
     },
 
     // Batch note operations

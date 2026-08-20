@@ -25,6 +25,7 @@ public class MCPServer {
     private ServerSocket serverSocket;
     private ExecutorService executor;
     private AtomicBoolean running = new AtomicBoolean(false);
+    private final java.util.Set<Socket> clientSockets = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     public MCPServer(int port, BitwigMCPExtension extension, ControllerHost host) {
         this.port = port;
@@ -45,6 +46,7 @@ public class MCPServer {
                 try {
                     Socket clientSocket = serverSocket.accept();
                     host.println("MCP client connected: " + clientSocket.getRemoteSocketAddress());
+                    clientSockets.add(clientSocket);
                     executor.submit(() -> handleClient(clientSocket));
                 } catch (IOException e) {
                     if (running.get()) {
@@ -64,6 +66,20 @@ public class MCPServer {
         } catch (IOException e) {
             host.errorln("Error closing server socket: " + e.getMessage());
         }
+        // Closing the listening socket only stops new connections. Already-accepted
+        // client sockets (e.g. the MCP server's persistent connection) stay open and
+        // would keep talking to this now-detached extension instance after a reload.
+        // Closing them here unblocks their handleClient() readLine() with an
+        // IOException, which fires the client's 'close' event and makes it reconnect
+        // to the freshly-init'd extension instead of silently getting stale data.
+        for (Socket clientSocket : clientSockets) {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                // Best effort - already closing down.
+            }
+        }
+        clientSockets.clear();
         if (executor != null) {
             executor.shutdownNow();
         }
@@ -100,6 +116,8 @@ public class MCPServer {
             }
         } catch (IOException e) {
             host.println("Client disconnected: " + e.getMessage());
+        } finally {
+            clientSockets.remove(clientSocket);
         }
     }
 

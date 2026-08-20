@@ -343,6 +343,58 @@ export async function handleBatchDeleteClips(ctx: HandlerContext): Promise<ToolR
   }
 }
 
+/** Handle launch_clip */
+export async function handleLaunchClip(ctx: HandlerContext): Promise<ToolResult> {
+  const { dawManager, daw, args } = ctx;
+
+  try {
+    const trackIndex = toInternal(args.trackIndex as number);
+    const slotIndex = toInternal(args.slotIndex as number);
+    await dawManager.send('clip.launch', { trackIndex, slotIndex }, daw);
+    return successResult({ success: true });
+  } catch (error) {
+    return errorResult(error instanceof Error ? error.message : String(error));
+  }
+}
+
+/** Handle stop_clip */
+export async function handleStopClip(ctx: HandlerContext): Promise<ToolResult> {
+  const { dawManager, daw, args } = ctx;
+
+  try {
+    const trackIndex = toInternal(args.trackIndex as number);
+    await dawManager.send('clip.stop', { trackIndex }, daw);
+    return successResult({ success: true });
+  } catch (error) {
+    return errorResult(error instanceof Error ? error.message : String(error));
+  }
+}
+
+/** Handle launch_scene */
+export async function handleLaunchScene(ctx: HandlerContext): Promise<ToolResult> {
+  const { dawManager, daw, args } = ctx;
+
+  try {
+    const sceneIndex = toInternal(args.sceneIndex as number);
+    await dawManager.send('clip.launchScene', { sceneIndex }, daw);
+    return successResult({ success: true });
+  } catch (error) {
+    return errorResult(error instanceof Error ? error.message : String(error));
+  }
+}
+
+/** Handle stop_all_clips */
+export async function handleStopAllClips(ctx: HandlerContext): Promise<ToolResult> {
+  const { dawManager, daw } = ctx;
+
+  try {
+    await dawManager.send('clip.stopAllClips', {}, daw);
+    return successResult({ success: true });
+  } catch (error) {
+    return errorResult(error instanceof Error ? error.message : String(error));
+  }
+}
+
 /** Handle set_clip_length */
 export async function handleSetClipLength(ctx: HandlerContext): Promise<ToolResult> {
   const { dawManager, config, daw, args } = ctx;

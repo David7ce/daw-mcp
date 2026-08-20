@@ -448,6 +448,46 @@ class ClipHandler(BaseHandler):
 
         return self.success()
 
+    def handle_launch(self, params):
+        """Launch (fire) a clip in a slot."""
+        track_index = params.get('trackIndex')
+        slot_index = params.get('slotIndex')
+
+        if track_index is None or slot_index is None:
+            raise ValueError("trackIndex and slotIndex are required")
+
+        track = self.song.tracks[track_index]
+        slot = track.clip_slots[slot_index]
+
+        try:
+            slot.fire()
+            logger.info("Launched clip at track %d slot %d", track_index, slot_index)
+        except Exception as e:
+            logger.error("Error launching clip: %s", e)
+            raise
+
+        return self.success()
+
+    def handle_launchScene(self, params):
+        """Launch (fire) a scene by index."""
+        scene_index = params.get('sceneIndex')
+        if scene_index is None:
+            raise ValueError("sceneIndex is required")
+
+        try:
+            self.song.scenes[scene_index].fire()
+            logger.info("Launched scene %d", scene_index)
+        except IndexError:
+            raise ValueError("Scene does not exist at index: %d" % scene_index)
+
+        return self.success()
+
+    def handle_stopAllClips(self, params):
+        """Stop all playing clips project-wide."""
+        self.song.stop_all_clips()
+        logger.info("Stopped all clips")
+        return self.success()
+
     def handle_findEmptySlots(self, params):
         """Find empty clip slots on a track."""
         track_index = params.get('trackIndex')
