@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-20, gradlew wrapper and copyExtension fix
+
+- Added `bitwig-extension/gradlew`/`gradlew.bat` (generated via
+  `gradle wrapper --gradle-version 8.14` off the cached distribution) -
+  building no longer requires manually locating a cached Gradle binary,
+  which every prior session in this changelog had to do by hand.
+  `.gitignore` already anticipated this (`.gradle/` excluded,
+  `gradle/wrapper/gradle-wrapper.jar` explicitly un-ignored).
+- Fixed `copyExtension`'s stale-jar-name trap: the task copied the built
+  jar under its Gradle-generated name (`daw-mcp-<version>.bwextension`)
+  instead of `BitwigMCP.bwextension`, the name Bitwig actually has
+  enabled - every prior manual rebuild either needed a hand rename or
+  Bitwig silently kept running the stale jar. Now uses a `rename` closure
+  in the `Copy` task. Verified: `./gradlew.bat test copyExtension`
+  builds, tests, and installs `BitwigMCP.bwextension` correctly as the
+  only file in Bitwig's Extensions folder, in one command.
+
 ## 2026-08-19, settle-delay fix deployed and regression-tested live
 
 - Rebuilt (`npm run bundle`), copied to the installed path
