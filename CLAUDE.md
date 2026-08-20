@@ -108,22 +108,22 @@ Claude <-> MCP Server (stdio) <-> TCP <-> DAW Extension <-> DAW API
 
 ### Bitwig Extension (Java)
 
-| File | Purpose |
-|------|---------|
-| `bitwig-extension/src/main/java/com/pxaudio/bitwigmcp/BitwigMCPExtension.java` | Main extension entry point, creates API objects |
-| `bitwig-extension/src/main/java/com/pxaudio/bitwigmcp/server/MCPServer.java` | TCP server, JSON-RPC handling |
-| `bitwig-extension/src/main/java/com/pxaudio/bitwigmcp/handlers/ClipHandler.java` | MIDI note read/write operations |
-| `bitwig-extension/src/main/java/com/pxaudio/bitwigmcp/handlers/CommandDispatcher.java` | Routes commands to handlers |
-| `bitwig-extension/.../config/ConfigReader.java` | Java config file loading |
+| File                                                                                   | Purpose                                         |
+|----------------------------------------------------------------------------------------|-------------------------------------------------|
+| `bitwig-extension/src/main/java/com/pxaudio/bitwigmcp/BitwigMCPExtension.java`         | Main extension entry point, creates API objects |
+| `bitwig-extension/src/main/java/com/pxaudio/bitwigmcp/server/MCPServer.java`           | TCP server, JSON-RPC handling                   |
+| `bitwig-extension/src/main/java/com/pxaudio/bitwigmcp/handlers/ClipHandler.java`       | MIDI note read/write operations                 |
+| `bitwig-extension/src/main/java/com/pxaudio/bitwigmcp/handlers/CommandDispatcher.java` | Routes commands to handlers                     |
+| `bitwig-extension/.../config/ConfigReader.java`                                        | Java config file loading                        |
 
 ### Ableton Extension (Python)
 
-| File | Purpose |
-|------|---------|
-| `ableton-extension/__init__.py` | Entry point for Live Remote Script |
-| `ableton-extension/manager.py` | ControlSurface subclass, tick scheduler |
-| `ableton-extension/tcp_server.py` | Non-blocking TCP server |
-| `ableton-extension/handlers/clip.py` | MIDI note operations |
+| File                                 | Purpose                                 |
+|--------------------------------------|-----------------------------------------|
+| `ableton-extension/__init__.py`      | Entry point for Live Remote Script      |
+| `ableton-extension/manager.py`       | ControlSurface subclass, tick scheduler |
+| `ableton-extension/tcp_server.py`    | Non-blocking TCP server                 |
+| `ableton-extension/handlers/clip.py` | MIDI note operations                    |
 
 **Linux Development:** Ableton Live 12 runs via Lutris in Wine prefix at `/home/pta/Games/ableton`. Note: Wine doesn't follow symlinks, so files must be copied:
 ```bash
@@ -133,23 +133,23 @@ cp -r /home/pta/Develop/audio/daw-mcp/ableton-extension/* \
 
 ### MCP Server (TypeScript)
 
-| File | Purpose |
-|------|---------|
-| `mcp-server/src/index.ts` | MCP tool definitions and command mapping |
-| `mcp-server/src/daw-client.ts` | TCP client for DAW communication (lazy connections) |
-| `mcp-server/src/config.ts` | Configuration file loading |
-| `mcp-server/src/music-analysis.ts` | Tonal.js chord/scale/key detection |
-| `mcp-server/src/euclidean.ts` | Euclidean rhythm generation (uses Tonal.js RhythmPattern) |
+| File                               | Purpose                                                   |
+|------------------------------------|-----------------------------------------------------------|
+| `mcp-server/src/index.ts`          | MCP tool definitions and command mapping                  |
+| `mcp-server/src/daw-client.ts`     | TCP client for DAW communication (lazy connections)       |
+| `mcp-server/src/config.ts`         | Configuration file loading                                |
+| `mcp-server/src/music-analysis.ts` | Tonal.js chord/scale/key detection                        |
+| `mcp-server/src/euclidean.ts`      | Euclidean rhythm generation (uses Tonal.js RhythmPattern) |
 
 ## Configuration
 
 Both extensions and the MCP server read from a shared config file:
 
-| Platform | Path |
-|----------|------|
-| Linux | `~/.config/daw-mcp/config.json` |
-| macOS | `~/Library/Application Support/daw-mcp/config.json` |
-| Windows | `%APPDATA%\daw-mcp\config.json` |
+| Platform | Path                                                |
+|----------|-----------------------------------------------------|
+| Linux    | `~/.config/daw-mcp/config.json`                     |
+| macOS    | `~/Library/Application Support/daw-mcp/config.json` |
+| Windows  | `%APPDATA%\daw-mcp\config.json`                     |
 
 **Example config:**
 ```json
@@ -225,39 +225,39 @@ batch_set_notes({daw: "bitwig", notes: [[0, 60, 100, 0.5]]})
 
 ### Available Tools (Enabled by Default)
 
-| Category | Tools |
-|----------|-------|
-| Discovery | `get_daws` - check connected DAWs and default |
-| Project | `get_project_info` |
-| Tracks | `list_tracks` |
-| Clips | `batch_list_clips`, `batch_create_clips`, `batch_delete_clips`, `set_clip_length` |
-| Devices | `list_devices`, `select_device`, `get_device_parameters`, `set_device_parameter`, `delete_device`, `list_parameter_pages`, `select_parameter_page` |
-| Device Loading | `load_device`, `search_browser` |
-| MIDI Notes | `batch_get_notes`, `batch_set_notes`, `batch_clear_notes` |
-| Analysis | `get_clip_stats` - stats + Tonal.js chord/scale/key detection |
-| Generative | `batch_create_euclid_pattern` - Euclidean rhythms (multi-track/clip) |
+| Category       | Tools                                                                                                                                              |
+|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| Discovery      | `get_daws` - check connected DAWs and default                                                                                                      |
+| Project        | `get_project_info`                                                                                                                                 |
+| Tracks         | `list_tracks`                                                                                                                                      |
+| Clips          | `batch_list_clips`, `batch_create_clips`, `batch_delete_clips`, `set_clip_length`                                                                  |
+| Devices        | `list_devices`, `select_device`, `get_device_parameters`, `set_device_parameter`, `delete_device`, `list_parameter_pages`, `select_parameter_page` |
+| Device Loading | `load_device`, `search_browser`                                                                                                                    |
+| MIDI Notes     | `batch_get_notes`, `batch_set_notes`, `batch_clear_notes`                                                                                          |
+| Analysis       | `get_clip_stats` - stats + Tonal.js chord/scale/key detection                                                                                      |
+| Generative     | `batch_create_euclid_pattern` - Euclidean rhythms (multi-track/clip)                                                                               |
 
 ### Optional Tools (Disabled by Default)
 
 Enable in config with `"tool_name": true`:
 
-| Tool | Use Case |
-|------|----------|
-| `batch_move_notes` | Shift note positions |
-| `batch_set_note_properties` | Velocity, duration, MPE properties |
-| `transpose_clip` | Transpose all notes in clip |
-| `transpose_range` | Transpose notes in step range |
-| `batch_create_tracks` | Create multiple tracks |
-| `batch_delete_tracks` | Delete multiple tracks |
-| `batch_set_track_properties` | Volume, pan, mute, solo |
-| `browser_open` | Precise browser filter control |
-| `browser_set_content_type` | Diagnostic only - verified non-functional in Bitwig |
-| `browser_set_filter` | Precise browser filter control |
-| `browser_get_results` | Precise browser filter control |
-| `browser_select` | Precise browser filter control |
-| `browser_commit` | Precise browser filter control |
-| `browser_cancel` | Clear a stuck browser popup |
-| `browser_get_state` | Inspect browser session state |
+| Tool                         | Use Case                                            |
+|------------------------------|-----------------------------------------------------|
+| `batch_move_notes`           | Shift note positions                                |
+| `batch_set_note_properties`  | Velocity, duration, MPE properties                  |
+| `transpose_clip`             | Transpose all notes in clip                         |
+| `transpose_range`            | Transpose notes in step range                       |
+| `batch_create_tracks`        | Create multiple tracks                              |
+| `batch_delete_tracks`        | Delete multiple tracks                              |
+| `batch_set_track_properties` | Volume, pan, mute, solo                             |
+| `browser_open`               | Precise browser filter control                      |
+| `browser_set_content_type`   | Diagnostic only - verified non-functional in Bitwig |
+| `browser_set_filter`         | Precise browser filter control                      |
+| `browser_get_results`        | Precise browser filter control                      |
+| `browser_select`             | Precise browser filter control                      |
+| `browser_commit`             | Precise browser filter control                      |
+| `browser_cancel`             | Clear a stuck browser popup                         |
+| `browser_get_state`          | Inspect browser session state                       |
 
 ## Bitwig API Documentation
 
@@ -419,12 +419,12 @@ These were found by testing against a running Bitwig instance. Each is a
 call that **returns success while doing nothing** — assume nothing about
 untested write paths.
 
-| API | Behavior | Consequence |
-|-----|----------|-------------|
-| `SettableRangedValue.set(double)` | Subject to the controller's take over strategy; one-shot programmatic writes never "catch up" and are discarded | Use `setImmediately(double)` — done for track volume/pan and device parameters |
-| `PopupBrowser.selectedContentTypeIndex().set(int)` | Inert — the index reads back unchanged (set to 2, still reads 0) and the results column never updates | Presets unreachable via the popup browser |
-| `Device.createDeviceBrowser(int, int)` | Returns a `Browser` whose `exists()` is false, with a zero-size results bank, regardless of the sizes passed | The legacy `Browser`/`BrowsingSession` API — including `getPresetSession()` — is unusable |
-| `Device.switchToNextPreset()` / `switchToPreviousPreset()` | Deprecated **and** inert | `next_preset`/`previous_preset` were removed |
+| API                                                        | Behavior                                                                                                        | Consequence                                                                               |
+|------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| `SettableRangedValue.set(double)`                          | Subject to the controller's take over strategy; one-shot programmatic writes never "catch up" and are discarded | Use `setImmediately(double)` — done for track volume/pan and device parameters            |
+| `PopupBrowser.selectedContentTypeIndex().set(int)`         | Inert — the index reads back unchanged (set to 2, still reads 0) and the results column never updates           | Presets unreachable via the popup browser                                                 |
+| `Device.createDeviceBrowser(int, int)`                     | Returns a `Browser` whose `exists()` is false, with a zero-size results bank, regardless of the sizes passed    | The legacy `Browser`/`BrowsingSession` API — including `getPresetSession()` — is unusable |
+| `Device.switchToNextPreset()` / `switchToPreviousPreset()` | Deprecated **and** inert                                                                                        | `next_preset`/`previous_preset` were removed                                              |
 
 `browser_set_content_type` is kept only as a diagnostic; it does not work.
 

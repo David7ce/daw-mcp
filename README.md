@@ -84,11 +84,11 @@ daw-mcp-<version>/
 
 Copy `BitwigMCP.bwextension` to your extensions folder:
 
-| Platform | Location |
-|----------|----------|
+| Platform    | Location                                            |
+|-------------|-----------------------------------------------------|
 | **Windows** | `%USERPROFILE%\Documents\Bitwig Studio\Extensions\` |
-| **macOS** | `~/Documents/Bitwig Studio/Extensions/` |
-| **Linux** | `~/Bitwig Studio/Extensions/` |
+| **macOS**   | `~/Documents/Bitwig Studio/Extensions/`             |
+| **Linux**   | `~/Bitwig Studio/Extensions/`                       |
 
 Then in Bitwig: **Settings → Controllers → + Add Controller → select "PX-Audio" → Bitwig MCP Bridge**
 
@@ -102,11 +102,11 @@ You should see: *"Bitwig MCP Bridge started on port 8181"*
 
 Copy the entire `AbletonMCP` folder to your Remote Scripts folder:
 
-| Platform | Location |
-|----------|----------|
-| **Windows** | `%USERPROFILE%\Documents\Ableton\User Library\Remote Scripts\` |
-| **macOS** | `~/Music/Ableton/User Library/Remote Scripts/` |
-| **Linux** | (Wine) `~/.wine/drive_c/users/YOU/Documents/Ableton/User Library/Remote Scripts/` |
+| Platform    | Location                                                                          |
+|-------------|-----------------------------------------------------------------------------------|
+| **Windows** | `%USERPROFILE%\Documents\Ableton\User Library\Remote Scripts\`                    |
+| **macOS**   | `~/Music/Ableton/User Library/Remote Scripts/`                                    |
+| **Linux**   | (Wine) `~/.wine/drive_c/users/YOU/Documents/Ableton/User Library/Remote Scripts/` |
 
 Then in Ableton: **Preferences → Link, Tempo & MIDI → Control Surface → select "AbletonMCP"**
 
@@ -118,11 +118,11 @@ You should see *"AbletonMCP loaded"* in the status bar.
 
 Edit your Claude Desktop config file:
 
-| Platform | Location |
-|----------|----------|
-| **Windows** | `%APPDATA%\Claude\claude_desktop_config.json` |
-| **macOS** | `~/Library/Application Support/Claude/claude_desktop_config.json` |
-| **Linux** | `~/.config/Claude/claude_desktop_config.json` |
+| Platform    | Location                                                          |
+|-------------|-------------------------------------------------------------------|
+| **Windows** | `%APPDATA%\Claude\claude_desktop_config.json`                     |
+| **macOS**   | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| **Linux**   | `~/.config/Claude/claude_desktop_config.json`                     |
 
 Add this (create the file if it doesn't exist):
 
@@ -198,10 +198,10 @@ That's it. Claude can now see what's in your clips and create new musical conten
 
 ## Supported DAWs
 
-| DAW | Status | Notes |
-|-----|--------|-------|
-| **Bitwig Studio** | ✅ Ready | Full support via Java extension |
-| **Ableton Live** | ✅ Ready | Full support via Python Remote Script |
+| DAW               | Status  | Notes                                 |
+|-------------------|---------|---------------------------------------|
+| **Bitwig Studio** | ✅ Ready | Full support via Java extension       |
+| **Ableton Live**  | ✅ Ready | Full support via Python Remote Script |
 
 ## Current Limitations
 
@@ -228,11 +228,11 @@ Claude talks to a small server that translates requests into commands your DAW u
 
 For custom settings, create a config file:
 
-| Platform | Location |
-|----------|----------|
-| **Windows** | `%APPDATA%\daw-mcp\config.json` |
-| **macOS** | `~/Library/Application Support/daw-mcp/config.json` |
-| **Linux** | `~/.config/daw-mcp/config.json` |
+| Platform    | Location                                            |
+|-------------|-----------------------------------------------------|
+| **Windows** | `%APPDATA%\daw-mcp\config.json`                     |
+| **macOS**   | `~/Library/Application Support/daw-mcp/config.json` |
+| **Linux**   | `~/.config/daw-mcp/config.json`                     |
 
 ```json
 {
